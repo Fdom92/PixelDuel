@@ -37,6 +37,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "reaccion"
 
+func get_display_name() -> String:
+	return "Caza al topo"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -72,6 +75,7 @@ func _layout() -> void:
 
 	for i in NUM_HOLES:
 		var col: int = i % COLS
+		@warning_ignore("integer_division")
 		var row: int = i / COLS
 		var x: float = margin + col * (hole_w + margin)
 		var y: float = top_offset + margin + row * (hole_h + margin)
@@ -111,7 +115,7 @@ func _hide_mole() -> void:
 	_active_hole = -1
 	_spawn_timer = rng.randf_range(SPAWN_GAP_MIN, SPAWN_GAP_MAX)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running or _active_hole == -1:
 		return
 	var pos := Vector2.ZERO

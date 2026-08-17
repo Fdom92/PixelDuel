@@ -31,6 +31,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "equilibrio"
 
+func get_display_name() -> String:
+	return "Cuerda floja"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -102,7 +105,7 @@ func _process(delta: float) -> void:
 	elif _elapsed >= duration_max:
 		_resolve(true)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pos := Vector2.ZERO

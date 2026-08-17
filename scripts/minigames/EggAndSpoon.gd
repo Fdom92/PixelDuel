@@ -31,6 +31,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "arrastre"
 
+func get_display_name() -> String:
+	return "Huevo en la cuchara"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_phase_a = rng.randf_range(0.0, TAU)
@@ -99,7 +102,7 @@ func _current_target_x() -> float:
 	var amp: float = _track_width / 2.0 - EGG_RADIUS - 4.0
 	return base + amp * sin(_elapsed * 0.9 + _phase_a) * 0.6 + amp * sin(_elapsed * 1.7 + _phase_b) * 0.4
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	if event is InputEventScreenTouch:

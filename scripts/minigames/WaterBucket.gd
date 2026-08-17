@@ -28,6 +28,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "equilibrio"
 
+func get_display_name() -> String:
+	return "Transporte del cubo de agua"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -82,7 +85,7 @@ func _process(delta: float) -> void:
 	if _elapsed >= duration_max:
 		_stop()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \

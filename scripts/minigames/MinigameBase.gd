@@ -41,3 +41,8 @@ func get_unit_label() -> String:
 ## misma partida. Ver README para la lista de categorías en uso.
 func get_mechanic_category() -> String:
 	return "general"
+
+## Nombre visible de la prueba, mostrado en la pantalla de introducción
+## de ronda antes de pulsar "Empezar".
+func get_display_name() -> String:
+	return "Prueba"

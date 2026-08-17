@@ -27,6 +27,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "swipe"
 
+func get_display_name() -> String:
+	return "Bolos"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -53,12 +56,12 @@ func _ready() -> void:
 
 func _layout() -> void:
 	var vp := get_viewport_rect().size
-	var rows: int = ceili(float(NUM_PINS) / float(PIN_COLS))
 	var spacing_x := 36.0
 	var spacing_y := 32.0
 	var start_y := 60.0
 	for i in NUM_PINS:
 		var col: int = i % PIN_COLS
+		@warning_ignore("integer_division")
 		var row: int = i / PIN_COLS
 		var row_count: int = min(PIN_COLS, NUM_PINS - row * PIN_COLS)
 		var row_width: float = (row_count - 1) * spacing_x
@@ -68,7 +71,7 @@ func _layout() -> void:
 
 	_ball.position = Vector2(vp.x / 2.0 - _ball.size.x / 2.0, vp.y - 64.0)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if _done:
 		return
 	if event is InputEventScreenTouch or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):

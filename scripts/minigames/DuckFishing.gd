@@ -34,6 +34,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "arrastre"
 
+func get_display_name() -> String:
+	return "Pesca de patos"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -100,7 +103,7 @@ func _spawn_duck() -> void:
 	_ducks.append(duck)
 	_spawned += 1
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	if event is InputEventScreenTouch:

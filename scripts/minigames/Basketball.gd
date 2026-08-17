@@ -35,6 +35,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "carga_suelta"
 
+func get_display_name() -> String:
+	return "Canastas"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -105,7 +108,7 @@ func _process(delta: float) -> void:
 			_direction = 1
 		_marker.position.x = _bar_width * _power / 100.0
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pressed_now: bool = (event is InputEventScreenTouch and event.pressed) \

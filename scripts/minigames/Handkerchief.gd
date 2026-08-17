@@ -19,6 +19,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "reaccion"
 
+func get_display_name() -> String:
+	return "El pañuelo"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -52,7 +55,7 @@ func _on_cue() -> void:
 	_cue_rect.color = Color(0.9, 0.85, 0.2)
 	_info_label.text = "¡YA! ¡Toca!"
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if _state == "done":
 		return
 	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \

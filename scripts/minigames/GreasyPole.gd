@@ -34,6 +34,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "spam_toques"
 
+func get_display_name() -> String:
+	return "La cucaña"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -100,7 +103,7 @@ func _process(delta: float) -> void:
 	if _elapsed >= duration_max or _height >= _track_height:
 		_stop()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \

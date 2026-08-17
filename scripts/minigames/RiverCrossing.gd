@@ -27,6 +27,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "timing_objetivo"
 
+func get_display_name() -> String:
+	return "Cruzar el río de troncos"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -77,7 +80,7 @@ func _process(delta: float) -> void:
 	elif _t >= _log_duration:
 		_fail()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \

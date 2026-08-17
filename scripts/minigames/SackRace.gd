@@ -23,6 +23,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "spam_toques"
 
+func get_display_name() -> String:
+	return "Carrera de sacos"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_time_left = duration_max
@@ -75,7 +78,7 @@ func _update_labels() -> void:
 	_count_label.text = "%d" % _count
 	_time_label.text = "%.1fs" % _time_left
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pos := Vector2.ZERO

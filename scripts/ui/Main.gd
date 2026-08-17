@@ -24,6 +24,7 @@ var _attempt_index := 0
 var _attempt_values: Array[float] = []
 var _current_aggregation_type := "average"
 var _current_unit_label := "pts"
+var _current_minigame_name := "Prueba"
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -38,15 +39,11 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	_menu_panel = _make_panel()
-	var title := Label.new()
-	title.text = "PixelDuel"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 32)
+	var title := _make_label("PixelDuel")
+	title.add_theme_font_size_override("font_size", 26)
 	_menu_panel.add_child(title)
 
-	var subtitle := Label.new()
-	subtitle.text = "%d pruebas · pasa el móvil entre jugadores" % MatchManager.ROUNDS_TOTAL
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var subtitle := _make_label("%d pruebas · pasa el móvil entre jugadores" % MatchManager.ROUNDS_TOTAL)
 	_menu_panel.add_child(subtitle)
 
 	var participants_row := HBoxContainer.new()
@@ -56,7 +53,7 @@ func _build_ui() -> void:
 	minus_btn.text = "-"
 	minus_btn.pressed.connect(_on_participants_minus_pressed)
 	participants_row.add_child(minus_btn)
-	_participants_label = Label.new()
+	_participants_label = _make_label("")
 	participants_row.add_child(_participants_label)
 	var plus_btn := Button.new()
 	plus_btn.text = "+"
@@ -71,8 +68,7 @@ func _build_ui() -> void:
 	add_child(_menu_panel)
 
 	_round_intro_panel = _make_panel()
-	_round_intro_label = Label.new()
-	_round_intro_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_round_intro_label = _make_label("")
 	_round_intro_panel.add_child(_round_intro_label)
 	_start_turn_button = Button.new()
 	_start_turn_button.text = "Empezar"
@@ -81,8 +77,7 @@ func _build_ui() -> void:
 	add_child(_round_intro_panel)
 
 	_pass_device_panel = _make_panel()
-	_pass_device_label = Label.new()
-	_pass_device_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_pass_device_label = _make_label("")
 	_pass_device_panel.add_child(_pass_device_label)
 	var ready_btn := Button.new()
 	ready_btn.text = "Listo"
@@ -91,8 +86,7 @@ func _build_ui() -> void:
 	add_child(_pass_device_panel)
 
 	_round_result_panel = _make_panel()
-	_round_result_label = Label.new()
-	_round_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_round_result_label = _make_label("")
 	_round_result_panel.add_child(_round_result_label)
 	var next_btn := Button.new()
 	next_btn.text = "Siguiente"
@@ -101,8 +95,7 @@ func _build_ui() -> void:
 	add_child(_round_result_panel)
 
 	_final_result_panel = _make_panel()
-	_final_result_label = Label.new()
-	_final_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_final_result_label = _make_label("")
 	_final_result_panel.add_child(_final_result_label)
 	var replay_btn := Button.new()
 	replay_btn.text = "Jugar de nuevo"
@@ -121,6 +114,18 @@ func _make_panel() -> VBoxContainer:
 	panel.add_theme_constant_override("separation", 16)
 	return panel
 
+## Label centrado con ajuste de línea automático — sin esto, un texto más
+## ancho que la pantalla (216px) se sale de la ventana en vez de partirse
+## en varias líneas.
+func _make_label(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 180.0
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return label
+
 func _show_only(panel: Control) -> void:
 	for p in [_menu_panel, _round_intro_panel, _pass_device_panel, _round_result_panel, _final_result_panel, _minigame_container]:
 		p.visible = (p == panel)
@@ -134,7 +139,7 @@ func _on_participants_plus_pressed() -> void:
 	_update_participants_label()
 
 func _update_participants_label() -> void:
-	_participants_label.text = "Participantes por jugador: %d" % MatchManager.participants_per_player
+	_participants_label.text = "Participantes: %d" % MatchManager.participants_per_player
 
 func _on_turn_started(player: int) -> void:
 	_pending_player = player
@@ -148,11 +153,21 @@ func _on_turn_started(player: int) -> void:
 func _on_pass_device_ready_pressed() -> void:
 	_attempt_index = 0
 	_attempt_values = []
+	_current_minigame_name = _peek_minigame_name()
 	_show_round_intro()
 
+## Instancia la escena fuera del árbol solo para leer su nombre para
+## mostrar, y la libera al momento — igual que MatchManager._category_of().
+func _peek_minigame_name() -> String:
+	var scene: PackedScene = MatchManager.current_minigame_scene()
+	var temp: MinigameBase = scene.instantiate()
+	var name := temp.get_display_name()
+	temp.free()
+	return name
+
 func _show_round_intro() -> void:
-	var text := "Ronda %d/%d\nJugador %d" % [
-		MatchManager.round_index() + 1, MatchManager.ROUNDS_TOTAL, _pending_player
+	var text := "%s\nRonda %d/%d\nJugador %d" % [
+		_current_minigame_name, MatchManager.round_index() + 1, MatchManager.ROUNDS_TOTAL, _pending_player
 	]
 	if MatchManager.participants_per_player > 1:
 		text += "\nParticipante %d/%d" % [_attempt_index + 1, MatchManager.participants_per_player]

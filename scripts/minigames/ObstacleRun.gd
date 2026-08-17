@@ -36,6 +36,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "swipe"
 
+func get_display_name() -> String:
+	return "Carrera de obstáculos"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -86,7 +89,7 @@ func _process(delta: float) -> void:
 	if _obstacle_y > _hit_line_y + MISS_MARGIN:
 		_fail()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	if event is InputEventScreenTouch or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):

@@ -33,6 +33,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "timing_objetivo"
 
+func get_display_name() -> String:
+	return "Morder la manzana"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_phase = rng.randf_range(0.0, TAU)
@@ -85,7 +88,7 @@ func _process(delta: float) -> void:
 	if _elapsed >= duration_max:
 		_stop()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \

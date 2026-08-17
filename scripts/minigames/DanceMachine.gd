@@ -44,6 +44,9 @@ func get_unit_label() -> String:
 func get_mechanic_category() -> String:
 	return "ritmo"
 
+func get_display_name() -> String:
+	return "Máquina de baile"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -119,7 +122,7 @@ func _spawn_note() -> void:
 	add_child(note)
 	_notes.append({"rect": note, "lane": lane})
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var pos := Vector2.ZERO

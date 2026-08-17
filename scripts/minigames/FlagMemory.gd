@@ -30,6 +30,9 @@ func get_aggregation_type() -> String:
 func get_mechanic_category() -> String:
 	return "memoria"
 
+func get_display_name() -> String:
+	return "Memoria de banderines"
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
@@ -77,7 +80,7 @@ func _set_highlight(idx: int, on: bool) -> void:
 	var base: Color = _base_colors[idx]
 	_zones[idx].color = base.lightened(0.5) if on else base
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _accepting_input or _done:
 		return
 	var pos := Vector2.ZERO
