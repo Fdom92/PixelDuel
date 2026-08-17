@@ -8,8 +8,11 @@ extends MinigameBase
 const CLIMB_PER_TAP := 12.0
 const SLIDE_BACK_RATE := 11.0
 ## Cerca de la cima el palo resbala mucho más (más grasa/cansancio) — los
-## primeros premios son fáciles, el de arriba exige tocar sin parar de verdad.
-const SLIDE_BACK_HEIGHT_FACTOR := 3.0
+## primeros premios son fáciles, el de arriba exige tocar sin parar de
+## verdad. Con factor 3 incluso un ritmo de toque normal bastaba para
+## los 5; con 6, cerca de la cima hace falta tocar más rápido de lo
+## normal solo para no resbalar, así que no todo el mundo llega al 5º.
+const SLIDE_BACK_HEIGHT_FACTOR := 6.0
 const PRIZE_COUNT := 5
 const RESULT_DELAY := 0.8
 

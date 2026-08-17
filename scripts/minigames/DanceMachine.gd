@@ -64,14 +64,9 @@ func get_participant_count() -> int:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
-	_info_label = Label.new()
-	_info_label.text = "¡Toca el carril justo cuando la nota cruce la línea!"
-	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_info_label.position.y = 16
-	add_child(_info_label)
-
+	# Los carriles ocupan toda la altura de la pantalla, así que hay que
+	# añadirlos ANTES que las etiquetas — si no, dibujan por encima y el
+	# texto queda tapado detrás de ellos.
 	for i in NUM_LANES:
 		var lane := ColorRect.new()
 		lane.color = _lane_colors[i].darkened(0.75)
@@ -81,6 +76,14 @@ func _ready() -> void:
 	_hit_line = ColorRect.new()
 	_hit_line.color = Color(0.9, 0.9, 0.9)
 	add_child(_hit_line)
+
+	_info_label = Label.new()
+	_info_label.text = "¡Toca el carril justo cuando la nota cruce la línea!"
+	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_info_label.position.y = 16
+	add_child(_info_label)
 
 	_stat_label = Label.new()
 	_stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

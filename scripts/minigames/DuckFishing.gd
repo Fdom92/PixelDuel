@@ -17,19 +17,26 @@ const SPAWN_RAMP := 0.3 # -30% de intervalo entre patos al final
 const NET_WIDTH := 30.0
 const NET_HEIGHT := 24.0
 const DUCK_SIZE := 22.0
-const CATCH_X_TOLERANCE := 18.0 # margen extra sobre el ancho de la red
+## La ventana de pesca real es más estricta que el tamaño visual de la
+## red — si no, con la red a medio camino entre dos carriles se pescaba
+## de los dos a la vez y capturar todo era trivial. Ahora hay que estar
+## de verdad en el carril del pato.
+const CATCH_X_TOLERANCE := 10.0
+const CATCH_Y_TOLERANCE := 13.0
 const WOBBLE_AMPLITUDE := 8.0
 const WOBBLE_FREQ := 2.2
 const RESULT_DELAY := 1.0
 
 ## Tipos de pato: value = puntos que da (o resta), weight = probabilidad
 ## relativa de aparecer, speed_mult = cuánto más rápido va (más valor,
-## más difícil de pescar), size_mult = tamaño relativo en pantalla.
+## más difícil de pescar), size_mult = tamaño relativo en pantalla. El
+## podrido usa un rojo de advertencia bien distinto de la familia
+## amarillo/naranja/dorado del resto, para que se distinga de un vistazo.
 const DUCK_TIERS := [
 	{"value": 1, "weight": 0.55, "color": Color(0.95, 0.85, 0.2), "speed_mult": 1.0, "size_mult": 1.0},
 	{"value": 3, "weight": 0.25, "color": Color(0.95, 0.55, 0.15), "speed_mult": 1.2, "size_mult": 0.9},
 	{"value": 5, "weight": 0.10, "color": Color(1.0, 0.84, 0.2), "speed_mult": 1.4, "size_mult": 0.8},
-	{"value": -2, "weight": 0.10, "color": Color(0.3, 0.25, 0.15), "speed_mult": 1.0, "size_mult": 1.1},
+	{"value": -2, "weight": 0.10, "color": Color(0.55, 0.1, 0.1), "speed_mult": 1.0, "size_mult": 1.1},
 ]
 
 var _net: ColorRect
@@ -136,7 +143,7 @@ func _process(delta: float) -> void:
 		rect.position.y = float(duck["base_y"]) + wobble - size / 2.0
 
 		var duck_center := Vector2(rect.position.x + size / 2.0, rect.position.y + size / 2.0)
-		if abs(duck_center.x - net_center.x) <= CATCH_X_TOLERANCE and abs(duck_center.y - net_center.y) <= (NET_HEIGHT / 2.0 + size / 2.0):
+		if abs(duck_center.x - net_center.x) <= CATCH_X_TOLERANCE and abs(duck_center.y - net_center.y) <= CATCH_Y_TOLERANCE:
 			_caught_points = max(_caught_points + int(duck["value"]), 0)
 			rect.queue_free()
 			_ducks.remove_at(i)

@@ -70,7 +70,7 @@ si alguna prueba concreta vuelve a tenerlos:
 |---|---|---|
 | `best` | Se queda el mejor resultado (0-100) | Un crack puede salvar al equipo |
 | `average` | Se promedian los resultados (0-100) | Premia que todo el equipo sea bueno |
-| `success_count` | Cada intento es pasa/no pasa; se cuentan los éxitos | Todo o nada, tipo "cuántos cruzan" — dentro del intento suele haber varios pasos encadenados (troncos, obstáculos, ráfagas) y fallar uno solo ya lo acaba, para que no sea un único tap trivial |
+| `success_count` | Cada intento es pasa/no pasa; se cuentan los éxitos | Todo o nada, tipo "cuántos cruzan" — dentro del intento suele haber varios pasos encadenados (obstáculos, ráfagas) y fallar uno solo ya lo acaba, para que no sea un único tap trivial |
 | `collect_sum` | Cada intento aporta unidades; se suman todas | Recolección, tipo "cuántos objetos se cogen entre todos" |
 
 ## Las 10 categorías de mecánica
@@ -101,7 +101,7 @@ prueba declara la suya con `get_mechanic_category()`.
 | Memoria de banderines | `FlagMemory.gd` | `average` | `memoria` | — | Repetir secuencia de colores, crece cada ronda (Simon) |
 | Huevo en la cuchara | `EggAndSpoon.gd` | `average` | `arrastre` | 12s | Arrastrar para seguir un objetivo que se mueve solo |
 | Transporte del cubo de agua | `WaterBucket.gd` | `average` | `equilibrio` | 12s | Tocar "estabilizar" con cooldown — el spam no ayuda |
-| Cruzar el río de troncos | `RiverCrossing.gd` | `success_count` | `timing_objetivo` | — | Camino de 5 troncos seguidos, tocar en el pico de estabilidad de cada uno — fallar uno te cae al río y acaba el intento |
+| Cruzar el río de troncos | `RiverCrossing.gd` | `collect_sum` | `timing_objetivo` | — | El tronco se mueve de verdad por el río (izquierda↔derecha, alternando y cada vez más rápido) — tocar cuando esté sobre el punto de salto. Cada uno de los 5 troncos se juzga por separado: fallar uno no te elimina, solo no cuenta ese tronco |
 | Carrera de obstáculos | `ObstacleRun.gd` | `success_count` | `swipe` | — | Corres hacia la derecha y 5 obstáculos se acercan desde el otro lado, cada vez más rápidos — swipe hacia arriba (salto de verdad) justo cuando lleguen a ti. Un swipe flojo/torcido o mal timing te hace tropezar y acaba el intento |
 | Cuerda floja | `TightropeWalk.gd` | `success_count` | `equilibrio` | 6s | Ráfagas de viento aleatorias, corregir tocando el lado opuesto a la inclinación |
 | Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 12s | Tablero de 24 agujeros (4x6); un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato, con más frecuencia y pueden salir hasta 3 a la vez en los últimos segundos |
