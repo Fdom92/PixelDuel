@@ -159,10 +159,12 @@ cada prueba antes de combinarse en un resultado de ronda.
    `_finish(valor)` → vuelve a la intro hasta agotar los intentos.
 3. `Main.gd` combina los N valores según el tipo de la prueba y envía el
    resultado a `MatchManager.submit_score()`.
-4. Se comparan los resultados agregados de la ronda, se muestra quién
-   gana y se pulsa "Siguiente".
-5. Al completar todas las rondas se muestra el marcador final (rondas
-   ganadas por cada jugador).
+4. Se comparan los resultados agregados de la ronda para ver quién gana
+   esa prueba, y eso se traduce en puntos de partida: +2 para quien gana,
+   +1 para quien pierde (empate: +1 para ambos). Una ronda al azar por
+   partida vale el doble (+4 / +2). Se pulsa "Siguiente".
+5. Al completar todas las rondas se muestra el marcador final: solo la
+   puntuación total de cada jugador (no cuántas rondas ganó cada uno).
 
 ## Añadir una prueba nueva al bucket
 

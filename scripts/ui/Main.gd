@@ -144,6 +144,8 @@ func _update_participants_label() -> void:
 func _on_turn_started(player: int) -> void:
 	_pending_player = player
 	var text := "Pasa el móvil al Jugador %d" % player
+	if MatchManager.is_current_round_double():
+		text += "\n¡Puntos dobles esta ronda!"
 	if player == 2:
 		var p1_value: float = MatchManager.get_round_score(1)
 		text += "\n\nResultado a batir: %s" % _format_value(p1_value)
@@ -169,6 +171,8 @@ func _show_round_intro() -> void:
 	var text := "%s\nRonda %d/%d\nJugador %d" % [
 		_current_minigame_name, MatchManager.round_index() + 1, MatchManager.ROUNDS_TOTAL, _pending_player
 	]
+	if MatchManager.is_current_round_double():
+		text += "\n¡Puntos dobles!"
 	if MatchManager.participants_per_player > 1:
 		text += "\nParticipante %d/%d" % [_attempt_index + 1, MatchManager.participants_per_player]
 	_round_intro_label.text = text
@@ -222,16 +226,22 @@ func _format_value(value: float) -> String:
 		_: # "best" / "average"
 			return "%d pts" % int(round(value))
 
-func _on_round_finished(round_index: int, winner: int, p1_score: float, p2_score: float) -> void:
+func _on_round_finished(round_index: int, winner: int, p1_score: float, p2_score: float, is_double: bool) -> void:
+	var win_pts: int = MatchManager.POINTS_WIN_DOUBLE if is_double else MatchManager.POINTS_WIN
+	var lose_pts: int = MatchManager.POINTS_LOSE_DOUBLE if is_double else MatchManager.POINTS_LOSE
+	var p1_pts: int = win_pts if winner == 1 else lose_pts
+	var p2_pts: int = win_pts if winner == 2 else lose_pts
+
 	var winner_text := "Empate" if winner == 0 else "Gana el Jugador %d" % winner
-	_round_result_label.text = "Ronda %d\nJugador 1: %s\nJugador 2: %s\n%s" % [
-		round_index + 1, _format_value(p1_score), _format_value(p2_score), winner_text
+	var prefix := "¡Puntos dobles! " if is_double else ""
+	_round_result_label.text = "%sRonda %d\nJugador 1: %s (+%d pts)\nJugador 2: %s (+%d pts)\n%s" % [
+		prefix, round_index + 1, _format_value(p1_score), p1_pts, _format_value(p2_score), p2_pts, winner_text
 	]
 	_show_only(_round_result_panel)
 
-func _on_match_finished(winner: int, wins: Dictionary) -> void:
+func _on_match_finished(winner: int, points: Dictionary) -> void:
 	var winner_text := "¡Empate!" if winner == 0 else "¡Gana el Jugador %d!" % winner
-	_final_result_label.text = "Resultado final\nJugador 1: %d rondas\nJugador 2: %d rondas\n%s" % [
-		wins[1], wins[2], winner_text
+	_final_result_label.text = "Resultado final\nJugador 1: %d puntos\nJugador 2: %d puntos\n%s" % [
+		points[1], points[2], winner_text
 	]
 	_show_only(_final_result_panel)

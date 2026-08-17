@@ -6,12 +6,21 @@ extends Node
 signal round_started(round_index: int, total_rounds: int, minigame_name: String)
 signal turn_started(player: int)
 signal turn_finished(player: int, score: float)
-signal round_finished(round_index: int, winner: int, p1_score: float, p2_score: float)
-signal match_finished(winner: int, wins: Dictionary)
+signal round_finished(round_index: int, winner: int, p1_score: float, p2_score: float, is_double: bool)
+signal match_finished(winner: int, points: Dictionary)
 
 const ROUNDS_TOTAL := 5
 const MIN_PARTICIPANTS := 1
 const MAX_PARTICIPANTS := 5
+
+## Puntos de partida por ronda: quien gana la ronda suma POINTS_WIN, quien
+## la pierde suma POINTS_LOSE igualmente (punto de participación). En un
+## empate nadie gana, así que ambos suman solo la parte de "perder".
+## Una ronda al azar por partida vale el doble (POINTS_*_DOUBLE).
+const POINTS_WIN := 2
+const POINTS_LOSE := 1
+const POINTS_WIN_DOUBLE := 4
+const POINTS_LOSE_DOUBLE := 2
 
 ## Nº de "vecinos" que juega cada jugador por prueba; sus intentos se
 ## combinan según el tipo de agregación de la prueba. Configurable desde
@@ -43,13 +52,15 @@ var _selected_minigames: Array[PackedScene] = []
 var _round_index := 0
 var _current_player := 1
 var _round_scores := {1: 0.0, 2: 0.0}
-var _wins := {1: 0, 2: 0}
+var _points := {1: 0, 2: 0}
 var _round_seed := 0
+var _double_round_index := -1
 
 func start_match() -> void:
 	_selected_minigames = _pick_minigames(ROUNDS_TOTAL)
 	_round_index = 0
-	_wins = {1: 0, 2: 0}
+	_points = {1: 0, 2: 0}
+	_double_round_index = randi_range(0, ROUNDS_TOTAL - 1)
 	_start_round()
 
 func current_minigame_scene() -> PackedScene:
@@ -61,8 +72,12 @@ func current_player() -> int:
 func round_index() -> int:
 	return _round_index
 
-func wins() -> Dictionary:
-	return _wins.duplicate()
+func points() -> Dictionary:
+	return _points.duplicate()
+
+## Si la ronda actual es la ronda de puntos dobles de esta partida.
+func is_current_round_double() -> bool:
+	return _round_index == _double_round_index
 
 ## Seed compartida por los dos jugadores (y todos sus participantes) para
 ## la prueba de la ronda actual — así todo el mundo se enfrenta exactamente
@@ -89,11 +104,11 @@ func advance_to_next_round() -> void:
 	_round_index += 1
 	if _round_index >= ROUNDS_TOTAL:
 		var match_winner := 0
-		if _wins[1] > _wins[2]:
+		if _points[1] > _points[2]:
 			match_winner = 1
-		elif _wins[2] > _wins[1]:
+		elif _points[2] > _points[1]:
 			match_winner = 2
-		match_finished.emit(match_winner, _wins.duplicate())
+		match_finished.emit(match_winner, _points.duplicate())
 	else:
 		_start_round()
 
@@ -141,11 +156,18 @@ func _start_round() -> void:
 func _resolve_round() -> void:
 	var p1: float = _round_scores[1]
 	var p2: float = _round_scores[2]
+	var is_double := is_current_round_double()
+	var win_points: int = POINTS_WIN_DOUBLE if is_double else POINTS_WIN
+	var lose_points: int = POINTS_LOSE_DOUBLE if is_double else POINTS_LOSE
+
 	var winner := 0
 	if p1 > p2:
 		winner = 1
-		_wins[1] += 1
 	elif p2 > p1:
 		winner = 2
-		_wins[2] += 1
-	round_finished.emit(_round_index, winner, p1, p2)
+
+	# Empate: nadie gana, pero ambos suman el punto de participación.
+	_points[1] += win_points if winner == 1 else lose_points
+	_points[2] += win_points if winner == 2 else lose_points
+
+	round_finished.emit(_round_index, winner, p1, p2, is_double)
