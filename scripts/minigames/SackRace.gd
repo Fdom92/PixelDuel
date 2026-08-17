@@ -2,8 +2,8 @@ extends MinigameBase
 ## Carrera de sacos: alternar toques entre la zona izquierda y derecha lo
 ## más rápido posible durante un tiempo fijo. Puntúa por nº de alternancias.
 
-@export var duration_max := 5.0
-const TARGET_ALTERNATIONS := 24.0
+@export var duration_max := 12.0
+const TARGET_ALTERNATIONS := 58.0 # ritmo objetivo sin cambiar (~4.8 alternancias/s) a la duración nueva
 const RESULT_DELAY := 1.0
 
 var _left_zone: ColorRect

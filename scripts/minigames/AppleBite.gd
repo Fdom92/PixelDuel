@@ -5,7 +5,7 @@ extends MinigameBase
 ## parar — hay que cronometrar. Recolección acumulada: se suman los
 ## mordiscos de todos los participantes.
 
-@export var duration_max := 7.0
+@export var duration_max := 12.0
 const SWING_PERIOD := 1.6
 const SUCCESS_WINDOW := 18.0
 const TAP_COOLDOWN := 0.3

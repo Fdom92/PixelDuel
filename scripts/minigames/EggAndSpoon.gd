@@ -2,7 +2,7 @@ extends MinigameBase
 ## Huevo en la cuchara: arrastra la cuchara para mantenerla bajo el huevo,
 ## que se mueve solo. Puntúa según qué tan cerca la mantengas, de media.
 
-@export var duration_max := 6.0
+@export var duration_max := 12.0
 const TRACK_MARGIN := 24.0
 const TRACK_HEIGHT := 24.0
 const SPOON_WIDTH := 16.0

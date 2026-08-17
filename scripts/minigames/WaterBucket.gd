@@ -4,7 +4,7 @@ extends MinigameBase
 ## demasiado (spam) no sirve de nada. Puntúa por mantener el tambaleo bajo
 ## de media durante toda la prueba.
 
-@export var duration_max := 8.0
+@export var duration_max := 12.0
 const WOBBLE_RISE_RATE := 11.0 # por segundo
 const STABILIZE_AMOUNT := 22.0
 ## Estabilizar cuando el cubo casi ni se mueve lo desestabiliza en vez de

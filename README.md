@@ -90,20 +90,20 @@ prueba declara la suya con `get_mechanic_category()`.
 |---|---|---|---|---|---|
 | La rana | `FrogGame.gd` | `best` | `carga_suelta` | — | Cargar potencia (oscila) y soltar sobre un tablero con zonas de distinto valor (boca 50, molino 25, puente 10, resto 5) |
 | El pañuelo | `Handkerchief.gd` | `best` | `reaccion` | — | Reacción con anticipación: esperar la señal sin tocar y tocar lo antes posible — falsa salida si tocas antes de tiempo |
-| Carrera de sacos | `SackRace.gd` | `average` | `spam_toques` | 5s | Tap alterno izquierda/derecha, cuenta velocidad |
+| Carrera de sacos | `SackRace.gd` | `average` | `spam_toques` | 12s | Tap alterno izquierda/derecha, cuenta velocidad |
 | Memoria de banderines | `FlagMemory.gd` | `average` | `memoria` | — | Repetir secuencia de colores, crece cada ronda (Simon) |
-| Huevo en la cuchara | `EggAndSpoon.gd` | `average` | `arrastre` | 6s | Arrastrar para seguir un objetivo que se mueve solo |
-| Transporte del cubo de agua | `WaterBucket.gd` | `average` | `equilibrio` | 8s | Tocar "estabilizar" con cooldown — el spam no ayuda |
+| Huevo en la cuchara | `EggAndSpoon.gd` | `average` | `arrastre` | 12s | Arrastrar para seguir un objetivo que se mueve solo |
+| Transporte del cubo de agua | `WaterBucket.gd` | `average` | `equilibrio` | 12s | Tocar "estabilizar" con cooldown — el spam no ayuda |
 | Cruzar el río de troncos | `RiverCrossing.gd` | `success_count` | `timing_objetivo` | — | Camino de 5 troncos seguidos, tocar en el pico de estabilidad de cada uno — fallar uno te cae al río y acaba el intento |
 | Carrera de obstáculos | `ObstacleRun.gd` | `success_count` | `swipe` | — | Fila de 5 obstáculos cada vez más rápidos, swipe hacia arriba (salto de verdad) justo al cruzar la línea — un swipe flojo/torcido o mal timing te hace tropezar y acaba el intento |
 | Cuerda floja | `TightropeWalk.gd` | `success_count` | `equilibrio` | 6s | Ráfagas de viento aleatorias, corregir tocando el lado opuesto a la inclinación |
-| Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 7s | Tablero de 6 agujeros; un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato y con más frecuencia, hasta casi encadenarse al final |
-| Pesca de patos | `DuckFishing.gd` | `collect_sum` | `arrastre` | 9s | Estilo caseta de feria: patos cruzan el río en horizontal por 3 carriles a distinta velocidad; arrastra la red arriba/abajo. Cada pato tiene su propio valor — dorados valen más pero van más rápido, podridos restan si se pescan |
-| La cucaña | `GreasyPole.gd` | `collect_sum` | `spam_toques` | 5s | Tocar sin parar para trepar y coger premios antes de resbalar |
-| Morder la manzana | `AppleBite.gd` | `collect_sum` | `timing_objetivo` | 7s | Manzana que se balancea sola, tocar en el centro con cooldown por toque — cuenta los mordiscos conseguidos |
+| Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 12s | Tablero de 6 agujeros; un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato y con más frecuencia, hasta casi encadenarse al final |
+| Pesca de patos | `DuckFishing.gd` | `collect_sum` | `arrastre` | 12s | Estilo caseta de feria: patos cruzan el río en horizontal por 3 carriles a distinta velocidad; arrastra la red arriba/abajo. Cada pato tiene su propio valor — dorados valen más pero van más rápido, podridos restan si se pescan |
+| La cucaña | `GreasyPole.gd` | `collect_sum` | `spam_toques` | 12s | Tocar sin parar para trepar y coger premios antes de resbalar (el resbalón crece cerca de la cima) |
+| Morder la manzana | `AppleBite.gd` | `collect_sum` | `timing_objetivo` | 12s | Manzana que se balancea sola, tocar en el centro con cooldown por toque — cuenta los mordiscos conseguidos |
 | Bolos | `Skittles.gd` | `collect_sum` | `swipe` | — | Swipe de lanzamiento: precisión del ángulo y potencia determinan cuántos bolos caen |
-| Canastas | `Basketball.gd` | `collect_sum` | `carga_suelta` | 7s | Cargar potencia y soltar para tirar a un aro que cambia de sitio en cada tiro — encesta tantas veces como puedas antes de que se acabe el tiempo |
-| Máquina de baile | `DanceMachine.gd` | `collect_sum` | `ritmo` | 8s | 4 carriles, las notas caen hacia una línea — toca el carril correcto justo cuando la cruzan. A diferencia de Memoria (memorizar y repetir después), aquí reaccionas en directo a varios carriles a la vez |
+| Canastas | `Basketball.gd` | `collect_sum` | `carga_suelta` | 12s | Cargar potencia y soltar para tirar a un aro que cambia de sitio en cada tiro — encesta tantas veces como puedas antes de que se acabe el tiempo |
+| Máquina de baile | `DanceMachine.gd` | `collect_sum` | `ritmo` | 12s | 4 carriles, las notas caen hacia una línea — toca el carril correcto justo cuando la cruzan. La racha de aciertos acelera el ritmo y puede sacar notas dobles; fallar una la resetea. A diferencia de Memoria (memorizar y repetir después), aquí reaccionas en directo a varios carriles a la vez |
 | Petaco | `Pinball.gd` | `collect_sum` | `flippers` | 14s | Cargar y soltar para lanzar la bola; mantén pulsado el lado izq./der. para levantar ese flipper y no dejarla caer por el hueco central. Única prueba con física de rebote de verdad (gravedad, topes, paredes) — el resto son temporizador + input |
 
 Las 5 pruebas de fiestas de pueblo / recreativos clásicas (La rana, El

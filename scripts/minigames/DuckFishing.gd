@@ -6,7 +6,7 @@ extends MinigameBase
 ## valen más pero van más rápido; los podridos restan si los pescas.
 ## Recolección acumulada: se suman los puntos de todos los participantes.
 
-@export var duration_max := 9.0
+@export var duration_max := 12.0
 const NUM_LANES := 3
 const LANE_MARGIN_TOP := 66.0
 const LANE_MARGIN_BOTTOM := 60.0

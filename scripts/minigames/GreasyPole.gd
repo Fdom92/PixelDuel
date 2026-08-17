@@ -4,7 +4,7 @@ extends MinigameBase
 ## antes de que se acabe el tiempo. Recolección acumulada — el equipo
 ## suma los premios cogidos por todos sus participantes.
 
-@export var duration_max := 6.0
+@export var duration_max := 12.0
 const CLIMB_PER_TAP := 12.0
 const SLIDE_BACK_RATE := 11.0
 ## Cerca de la cima el palo resbala mucho más (más grasa/cansancio) — los

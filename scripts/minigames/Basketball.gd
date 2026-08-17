@@ -5,7 +5,7 @@ extends MinigameBase
 ## tiempo. El aro cambia de sitio en cada tiro. Recolección acumulada: se
 ## suman las canastas de todos los participantes.
 
-@export var duration_max := 7.0
+@export var duration_max := 12.0
 const CHARGE_SPEED := 150.0
 const HOOP_WIDTH := 18.0 # en unidades de potencia (0-100)
 const HOOP_MARGIN := 12.0 # no pegado a los bordes de la barra
