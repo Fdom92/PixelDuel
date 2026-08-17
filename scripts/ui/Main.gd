@@ -42,9 +42,6 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 26)
 	_menu_panel.add_child(title)
 
-	var subtitle := _make_label("%d pruebas · pasa el móvil entre jugadores" % MatchManager.ROUNDS_TOTAL)
-	_menu_panel.add_child(subtitle)
-
 	var play_btn := Button.new()
 	play_btn.text = "Jugar"
 	play_btn.pressed.connect(func(): MatchManager.start_match())
