@@ -104,7 +104,7 @@ prueba declara la suya con `get_mechanic_category()`.
 | Cruzar el río de troncos | `RiverCrossing.gd` | `collect_sum` | `timing_objetivo` | — | El tronco se mueve de verdad por el río (izquierda↔derecha, alternando y cada vez más rápido) — tocar cuando esté sobre el punto de salto. Cada uno de los 5 troncos se juzga por separado: fallar uno no te elimina, solo no cuenta ese tronco |
 | Carrera de obstáculos | `ObstacleRun.gd` | `success_count` | `swipe` | — | Corres hacia la derecha y 5 obstáculos se acercan desde el otro lado, cada vez más rápidos — swipe hacia arriba (salto de verdad) justo cuando lleguen a ti. Un swipe flojo/torcido o mal timing te hace tropezar y acaba el intento |
 | Cuerda floja | `TightropeWalk.gd` | `success_count` | `equilibrio` | 6s | Ráfagas de viento aleatorias, corregir tocando el lado opuesto a la inclinación |
-| Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 12s | Tablero de 24 agujeros (4x6); un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato, con más frecuencia y pueden salir hasta 3 a la vez en los últimos segundos |
+| Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 12s | Tablero de 12 agujeros (4x3); un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato, con más frecuencia y pueden salir hasta 3 a la vez en los últimos segundos |
 | Pesca de patos | `DuckFishing.gd` | `collect_sum` | `arrastre` | 12s | Estilo caseta de feria: patos cruzan el río en horizontal por 3 carriles a distinta velocidad; arrastra la red arriba/abajo. Cada pato tiene su propio valor — dorados valen más pero van más rápido, podridos restan si se pescan |
 | La cucaña | `GreasyPole.gd` | `collect_sum` | `spam_toques` | 12s | Tocar sin parar para trepar y coger premios antes de resbalar (el resbalón crece cerca de la cima) |
 | Morder la manzana | `AppleBite.gd` | `collect_sum` | `timing_objetivo` | 12s | Manzana que se balancea sola, tocar en el centro con cooldown por toque — cuenta los mordiscos conseguidos |
@@ -164,17 +164,29 @@ de uno se queda por si alguna prueba concreta lo pide en el futuro.
 1. Menú → "Jugar" → `MatchManager.start_match()` elige `ROUNDS_TOTAL` (5
    de las 17 disponibles) pruebas del bucket, sin repetir categoría
    mientras queden libres.
-2. Por cada ronda y jugador: pantalla "pasa el móvil al Jugador X" (con
-   el resultado a batir si es el Jugador 2) → "Listo" → intro de la
-   prueba → "Empezar" → se instancia la prueba (con la seed de la ronda)
-   → llama a `_finish(valor)`.
-3. `Main.gd` envía ese valor a `MatchManager.submit_score()`.
-4. Se comparan los resultados agregados de la ronda para ver quién gana
+2. Jugador 1: pantalla "pasa el móvil al Jugador 1" → "Listo" → intro de
+   la prueba (nombre, ronda, jugador) → "Empezar" → se instancia la
+   prueba (con la seed de la ronda) → llama a `_finish(valor)`.
+3. Jugador 2: pantalla "pasa el móvil al Jugador 2" (con el resultado a
+   batir) → "Listo" → directo a la prueba, sin repetir la pantalla de
+   intro — esa información ya se mostró una vez con el Jugador 1 y
+   volver a mostrarla es redundante.
+4. `Main.gd` envía cada valor a `MatchManager.submit_score()`.
+5. Se comparan los resultados agregados de la ronda para ver quién gana
    esa prueba, y eso se traduce en puntos de partida: +2 para quien gana,
    +1 para quien pierde (empate: +1 para ambos). Una ronda al azar por
    partida vale el doble (+4 / +2). Se pulsa "Siguiente".
-5. Al completar todas las rondas se muestra el marcador final: solo la
+6. Al completar todas las rondas se muestra el marcador final: solo la
    puntuación total de cada jugador (no cuántas rondas ganó cada uno).
+
+## Modo "Elegir prueba"
+
+Desde el menú principal, "Elegir prueba" abre una lista con las 17
+pruebas (`MatchManager.bucket`) para lanzar cualquiera suelta, fuera del
+flujo de partida — sin turnos, sin puntos, solo la prueba y su
+resultado, con botones para repetirla, elegir otra o volver al menú.
+Pensado para practicar o para probar una prueba en concreto sin tener
+que jugar una partida completa de 5 rondas.
 
 ## Añadir una prueba nueva al bucket
 

@@ -15,6 +15,15 @@ const OVERCORRECT_PENALTY := 16.0
 const COOLDOWN := 0.8
 const RESULT_DELAY := 1.0
 
+## Ráfagas de viento: cada X segundos (al azar) el cubo recibe un golpe
+## extra de tambaleo, además de la subida constante — para que no baste
+## con tocar a un ritmo fijo aprendido de memoria, hay que reaccionar a
+## algo impredecible.
+const GUST_INTERVAL_MIN := 1.6
+const GUST_INTERVAL_MAX := 2.8
+const GUST_STRENGTH_MIN := 12.0
+const GUST_STRENGTH_MAX := 22.0
+
 var _bar_bg: ColorRect
 var _bar_fill: ColorRect
 var _info_label: Label
@@ -23,6 +32,7 @@ var _status_label: Label
 var _vp := Vector2.ZERO
 var _wobble := 0.0
 var _cooldown_left := 0.0
+var _gust_timer := 0.0
 var _elapsed := 0.0
 var _wobble_accum := 0.0
 var _running := false
@@ -43,7 +53,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_info_label = Label.new()
-	_info_label.text = "Toca solo cuando tambalee mucho — corregir de más también desestabiliza"
+	_info_label.text = "Toca solo cuando tambalee mucho — cuidado con las ráfagas de viento"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -73,6 +83,7 @@ func _layout() -> void:
 	_bar_bg.size = Vector2(_vp.x - 48.0, 24.0)
 	_bar_fill.position = Vector2.ZERO
 	_bar_fill.size = Vector2(0.0, 24.0)
+	_gust_timer = rng.randf_range(GUST_INTERVAL_MIN, GUST_INTERVAL_MAX)
 	_running = true
 
 func _process(delta: float) -> void:
@@ -80,6 +91,11 @@ func _process(delta: float) -> void:
 		return
 	_elapsed += delta
 	_cooldown_left = max(_cooldown_left - delta, 0.0)
+
+	_gust_timer -= delta
+	if _gust_timer <= 0.0:
+		_gust_timer = rng.randf_range(GUST_INTERVAL_MIN, GUST_INTERVAL_MAX)
+		_wobble = clamp(_wobble + rng.randf_range(GUST_STRENGTH_MIN, GUST_STRENGTH_MAX), 0.0, 100.0)
 
 	_wobble = clamp(_wobble + WOBBLE_RISE_RATE * delta, 0.0, 100.0)
 	_wobble_accum += _wobble * delta

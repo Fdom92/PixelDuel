@@ -1,13 +1,17 @@
 extends Control
-## Orchestrates the pass-and-play flow: menu -> (pass device -> N intentos
-## de participante -> agregación) x2 por ronda -> resultado de ronda ->
-## ... -> resultado final.
+## Orchestrates the pass-and-play flow: menu -> (pass device -> ronda) x2
+## por ronda -> resultado de ronda -> ... -> resultado final. También
+## incluye un modo "Elegir prueba" para lanzar cualquier prueba suelta
+## desde el menú, sin pasar por el flujo de partida completo (útil para
+## practicar o para probar una prueba en concreto).
 
 var _menu_panel: VBoxContainer
 var _round_intro_panel: VBoxContainer
 var _pass_device_panel: VBoxContainer
 var _round_result_panel: VBoxContainer
 var _final_result_panel: VBoxContainer
+var _practice_list_panel: VBoxContainer
+var _practice_result_panel: VBoxContainer
 var _minigame_container: Control
 
 var _round_intro_label: Label
@@ -15,6 +19,7 @@ var _start_turn_button: Button
 var _pass_device_label: Label
 var _round_result_label: Label
 var _final_result_label: Label
+var _practice_result_label: Label
 
 var _current_minigame: MinigameBase
 var _pending_player := 1
@@ -25,6 +30,8 @@ var _current_aggregation_type := "average"
 var _current_unit_label := "pts"
 var _current_minigame_name := "Prueba"
 var _current_participant_count := 3
+
+var _practice_scene: PackedScene
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -46,6 +53,11 @@ func _build_ui() -> void:
 	play_btn.text = "Jugar"
 	play_btn.pressed.connect(func(): MatchManager.start_match())
 	_menu_panel.add_child(play_btn)
+
+	var practice_btn := Button.new()
+	practice_btn.text = "Elegir prueba"
+	practice_btn.pressed.connect(_show_practice_list)
+	_menu_panel.add_child(practice_btn)
 	add_child(_menu_panel)
 
 	_round_intro_panel = _make_panel()
@@ -84,9 +96,59 @@ func _build_ui() -> void:
 	_final_result_panel.add_child(replay_btn)
 	add_child(_final_result_panel)
 
+	_build_practice_list_panel()
+
+	_practice_result_panel = _make_panel()
+	_practice_result_label = _make_label("")
+	_practice_result_panel.add_child(_practice_result_label)
+	var practice_again_btn := Button.new()
+	practice_again_btn.text = "Jugar otra vez"
+	practice_again_btn.pressed.connect(func(): _launch_practice_minigame(_practice_scene))
+	_practice_result_panel.add_child(practice_again_btn)
+	var practice_list_btn := Button.new()
+	practice_list_btn.text = "Elegir otra"
+	practice_list_btn.pressed.connect(_show_practice_list)
+	_practice_result_panel.add_child(practice_list_btn)
+	var practice_menu_btn := Button.new()
+	practice_menu_btn.text = "Menú"
+	practice_menu_btn.pressed.connect(func(): _show_only(_menu_panel))
+	_practice_result_panel.add_child(practice_menu_btn)
+	add_child(_practice_result_panel)
+
 	_minigame_container = Control.new()
 	_minigame_container.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_minigame_container)
+
+func _build_practice_list_panel() -> void:
+	_practice_list_panel = _make_panel()
+	var title := _make_label("Elige una prueba")
+	_practice_list_panel.add_child(title)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_practice_list_panel.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 8)
+	scroll.add_child(list)
+
+	for scene in MatchManager.bucket:
+		var temp: MinigameBase = scene.instantiate()
+		var minigame_name := temp.get_display_name()
+		temp.free()
+
+		var btn := Button.new()
+		btn.text = minigame_name
+		btn.pressed.connect(func(): _launch_practice_minigame(scene))
+		list.add_child(btn)
+
+	var back_btn := Button.new()
+	back_btn.text = "Volver al menú"
+	back_btn.pressed.connect(func(): _show_only(_menu_panel))
+	_practice_list_panel.add_child(back_btn)
+	add_child(_practice_list_panel)
 
 func _make_panel() -> VBoxContainer:
 	var panel := VBoxContainer.new()
@@ -108,8 +170,30 @@ func _make_label(text: String) -> Label:
 	return label
 
 func _show_only(panel: Control) -> void:
-	for p in [_menu_panel, _round_intro_panel, _pass_device_panel, _round_result_panel, _final_result_panel, _minigame_container]:
+	for p in [_menu_panel, _round_intro_panel, _pass_device_panel, _round_result_panel, _final_result_panel, _practice_list_panel, _practice_result_panel, _minigame_container]:
 		p.visible = (p == panel)
+
+func _show_practice_list() -> void:
+	_show_only(_practice_list_panel)
+
+func _launch_practice_minigame(scene: PackedScene) -> void:
+	_practice_scene = scene
+	_current_minigame = scene.instantiate()
+	_current_minigame.set_round_seed(randi())
+	_current_aggregation_type = _current_minigame.get_aggregation_type()
+	_current_unit_label = _current_minigame.get_unit_label()
+	_current_minigame_name = _current_minigame.get_display_name()
+	_current_participant_count = 1
+	_current_minigame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_current_minigame.minigame_finished.connect(_on_practice_minigame_finished)
+	_minigame_container.add_child(_current_minigame)
+	_show_only(_minigame_container)
+
+func _on_practice_minigame_finished(value: float) -> void:
+	_current_minigame.queue_free()
+	_current_minigame = null
+	_practice_result_label.text = "%s\nResultado: %s" % [_current_minigame_name, _format_value(value)]
+	_show_only(_practice_result_panel)
 
 func _on_turn_started(player: int) -> void:
 	_pending_player = player
@@ -122,11 +206,18 @@ func _on_turn_started(player: int) -> void:
 	_pass_device_label.text = text
 	_show_only(_pass_device_panel)
 
+## El Jugador 1 ve la intro completa (prueba, ronda) antes de "Empezar".
+## El Jugador 2 ya vino de la pantalla de "pasa el móvil" con toda esa
+## información — repetirla en otra pantalla más es redundante, así que
+## pasa directo al juego en cuanto pulsa "Listo".
 func _on_pass_device_ready_pressed() -> void:
 	_attempt_index = 0
 	_attempt_values = []
 	_peek_minigame_info()
-	_show_round_intro()
+	if _pending_player == 1:
+		_show_round_intro()
+	else:
+		_launch_minigame()
 
 ## Instancia la escena fuera del árbol solo para leer su nombre y su nº de
 ## participantes, y la libera al momento — igual que MatchManager._category_of().

@@ -7,7 +7,7 @@ extends MinigameBase
 
 @export var duration_max := 12.0
 const COLS := 4
-const ROWS := 6
+const ROWS := 3
 const NUM_HOLES := COLS * ROWS
 const MOLE_UP_TIME := 0.65
 const SPAWN_GAP_MIN := 0.3
@@ -79,9 +79,9 @@ func _ready() -> void:
 
 func _layout() -> void:
 	var vp := get_viewport_rect().size
-	var margin := 8.0
-	var top_offset := 56.0
-	var bottom_offset := 48.0
+	var margin := 12.0
+	var top_offset := 60.0
+	var bottom_offset := 52.0
 	var available_h: float = vp.y - top_offset - bottom_offset
 	var hole_w: float = (vp.x - margin * (COLS + 1)) / float(COLS)
 	var hole_h: float = (available_h - margin * (ROWS + 1)) / float(ROWS)
