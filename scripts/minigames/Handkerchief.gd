@@ -55,7 +55,7 @@ func _on_cue() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _state == "done":
 		return
-	var pressed := (event is InputEventScreenTouch and event.pressed) \
+	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \
 		or (event is InputEventMouseButton and event.pressed)
 	if not pressed:
 		return

@@ -89,9 +89,9 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _fired:
 		return
-	var pressed_now := (event is InputEventScreenTouch and event.pressed) \
+	var pressed_now: bool = (event is InputEventScreenTouch and event.pressed) \
 		or (event is InputEventMouseButton and event.pressed)
-	var released_now := (event is InputEventScreenTouch and not event.pressed) \
+	var released_now: bool = (event is InputEventScreenTouch and not event.pressed) \
 		or (event is InputEventMouseButton and not event.pressed)
 	if pressed_now and not _charging:
 		_charging = true

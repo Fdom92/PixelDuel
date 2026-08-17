@@ -88,7 +88,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _running:
 		return
-	var pressed := (event is InputEventScreenTouch and event.pressed) \
+	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \
 		or (event is InputEventMouseButton and event.pressed)
 	if not pressed or _cooldown_left > 0.0:
 		return

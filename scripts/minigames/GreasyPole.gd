@@ -103,7 +103,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _running:
 		return
-	var pressed := (event is InputEventScreenTouch and event.pressed) \
+	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \
 		or (event is InputEventMouseButton and event.pressed)
 	if pressed:
 		_height = clamp(_height + CLIMB_PER_TAP, 0.0, _track_height)
