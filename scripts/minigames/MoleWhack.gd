@@ -14,6 +14,13 @@ const SPAWN_GAP_MIN := 0.35
 const SPAWN_GAP_MAX := 0.65
 const RESULT_DELAY := 1.0
 
+## El topo se hace más rápido y aparece con más frecuencia según pasa el
+## tiempo — al principio va al ritmo de siempre, al final casi se enlazan
+## uno con otro sin pausa.
+const MOLE_UP_TIME_MIN := 0.35
+const SPAWN_GAP_MIN_FLOOR := 0.15
+const SPAWN_GAP_MAX_FLOOR := 0.3
+
 const HOLE_COLOR := Color(0.25, 0.18, 0.12)
 const MOLE_COLOR := Color(0.55, 0.35, 0.2)
 
@@ -83,7 +90,19 @@ func _layout() -> void:
 		_holes[i].size = Vector2(hole_w, hole_h)
 
 	_running = true
-	_spawn_timer = rng.randf_range(SPAWN_GAP_MIN, SPAWN_GAP_MAX)
+	_spawn_timer = _current_spawn_gap()
+
+func _current_progress() -> float:
+	return clamp(_elapsed / duration_max, 0.0, 1.0)
+
+func _current_mole_up_time() -> float:
+	return lerp(MOLE_UP_TIME, MOLE_UP_TIME_MIN, _current_progress())
+
+func _current_spawn_gap() -> float:
+	var progress: float = _current_progress()
+	var lo: float = lerp(SPAWN_GAP_MIN, SPAWN_GAP_MIN_FLOOR, progress)
+	var hi: float = lerp(SPAWN_GAP_MAX, SPAWN_GAP_MAX_FLOOR, progress)
+	return rng.randf_range(lo, hi)
 
 func _process(delta: float) -> void:
 	if not _running:
@@ -106,14 +125,14 @@ func _process(delta: float) -> void:
 
 func _spawn_mole() -> void:
 	_active_hole = rng.randi_range(0, NUM_HOLES - 1)
-	_mole_time_left = MOLE_UP_TIME
+	_mole_time_left = _current_mole_up_time()
 	_holes[_active_hole].color = MOLE_COLOR
 
 func _hide_mole() -> void:
 	if _active_hole != -1:
 		_holes[_active_hole].color = HOLE_COLOR
 	_active_hole = -1
-	_spawn_timer = rng.randf_range(SPAWN_GAP_MIN, SPAWN_GAP_MAX)
+	_spawn_timer = _current_spawn_gap()
 
 func _input(event: InputEvent) -> void:
 	if not _running or _active_hole == -1:
