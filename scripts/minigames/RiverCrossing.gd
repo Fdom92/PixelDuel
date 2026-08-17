@@ -38,7 +38,7 @@ func get_display_name() -> String:
 	return "Cruzar el río de troncos"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -46,6 +46,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Toca cuando el tronco esté más verde (más estable)"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -56,6 +57,7 @@ func _ready() -> void:
 
 	_progress_label = Label.new()
 	_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_progress_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_progress_label.position.y = -32
 	add_child(_progress_label)

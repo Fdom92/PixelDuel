@@ -37,7 +37,7 @@ func get_display_name() -> String:
 	return "Transporte del cubo de agua"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -45,6 +45,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Toca solo cuando tambalee mucho — corregir de más también desestabiliza"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -59,6 +60,7 @@ func _ready() -> void:
 
 	_status_label = Label.new()
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_status_label.position.y = -32
 	add_child(_status_label)
@@ -86,8 +88,8 @@ func _process(delta: float) -> void:
 	_bar_fill.size.x = bar_width * _wobble / 100.0
 	_bar_fill.color = Color(0.2, 0.8, 0.3).lerp(Color(0.9, 0.2, 0.2), _wobble / 100.0)
 
-	_status_label.text = "%s — %.1fs" % [
-		("Listo" if _cooldown_left <= 0.0 else "Espera..."), max(duration_max - _elapsed, 0.0)
+	_status_label.text = "%s — %ds" % [
+		("Listo" if _cooldown_left <= 0.0 else "Espera..."), int(ceil(max(duration_max - _elapsed, 0.0)))
 	]
 
 	if _elapsed >= duration_max:

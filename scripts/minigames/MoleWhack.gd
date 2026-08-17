@@ -6,20 +6,22 @@ extends MinigameBase
 ## participantes.
 
 @export var duration_max := 12.0
-const COLS := 2
-const ROWS := 3
+const COLS := 4
+const ROWS := 6
 const NUM_HOLES := COLS * ROWS
 const MOLE_UP_TIME := 0.65
-const SPAWN_GAP_MIN := 0.35
-const SPAWN_GAP_MAX := 0.65
+const SPAWN_GAP_MIN := 0.3
+const SPAWN_GAP_MAX := 0.55
 const RESULT_DELAY := 1.0
 
-## El topo se hace más rápido y aparece con más frecuencia según pasa el
-## tiempo — al principio va al ritmo de siempre, al final casi se enlazan
-## uno con otro sin pausa.
+## El topo se hace más rápido, aparece con más frecuencia y, en los
+## últimos segundos, pueden asomar varios a la vez — al principio va al
+## ritmo de siempre, al final hay que repartir la atención entre varios.
 const MOLE_UP_TIME_MIN := 0.35
 const SPAWN_GAP_MIN_FLOOR := 0.15
 const SPAWN_GAP_MAX_FLOOR := 0.3
+const MULTI_MOLE_PROGRESS_1 := 0.5 # a partir de aquí, 2 topos a la vez
+const MULTI_MOLE_PROGRESS_2 := 0.8 # a partir de aquí, 3 topos a la vez
 
 const HOLE_COLOR := Color(0.25, 0.18, 0.12)
 const MOLE_COLOR := Color(0.55, 0.35, 0.2)
@@ -28,8 +30,7 @@ var _holes: Array[ColorRect] = []
 var _info_label: Label
 var _stat_label: Label
 
-var _active_hole := -1
-var _mole_time_left := 0.0
+var _active_moles: Dictionary = {} # hole_index (int) -> time_left (float)
 var _spawn_timer := 0.0
 var _elapsed := 0.0
 var _hit_count := 0
@@ -48,7 +49,7 @@ func get_display_name() -> String:
 	return "Caza al topo"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -56,6 +57,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "¡Toca el topo antes de que se esconda!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -68,6 +70,7 @@ func _ready() -> void:
 
 	_stat_label = Label.new()
 	_stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_stat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_stat_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_stat_label.position.y = -32
 	add_child(_stat_label)
@@ -76,9 +79,9 @@ func _ready() -> void:
 
 func _layout() -> void:
 	var vp := get_viewport_rect().size
-	var margin := 16.0
-	var top_offset := 64.0
-	var bottom_offset := 56.0
+	var margin := 8.0
+	var top_offset := 56.0
+	var bottom_offset := 48.0
 	var available_h: float = vp.y - top_offset - bottom_offset
 	var hole_w: float = (vp.x - margin * (COLS + 1)) / float(COLS)
 	var hole_h: float = (available_h - margin * (ROWS + 1)) / float(ROWS)
@@ -107,38 +110,53 @@ func _current_spawn_gap() -> float:
 	var hi: float = lerp(SPAWN_GAP_MAX, SPAWN_GAP_MAX_FLOOR, progress)
 	return rng.randf_range(lo, hi)
 
+func _current_target_count() -> int:
+	var progress: float = _current_progress()
+	if progress >= MULTI_MOLE_PROGRESS_2:
+		return 3
+	elif progress >= MULTI_MOLE_PROGRESS_1:
+		return 2
+	return 1
+
 func _process(delta: float) -> void:
 	if not _running:
 		return
 	_elapsed += delta
 
-	if _active_hole == -1:
+	for hole_index in _active_moles.keys():
+		_active_moles[hole_index] -= delta
+		if _active_moles[hole_index] <= 0.0:
+			_hide_mole(hole_index)
+
+	if _active_moles.size() < _current_target_count():
 		_spawn_timer -= delta
 		if _spawn_timer <= 0.0:
 			_spawn_mole()
-	else:
-		_mole_time_left -= delta
-		if _mole_time_left <= 0.0:
-			_hide_mole()
+			_spawn_timer = _current_spawn_gap()
 
-	_stat_label.text = "Topos: %d — %.1fs" % [_hit_count, max(duration_max - _elapsed, 0.0)]
+	_stat_label.text = "Topos: %d — %ds" % [_hit_count, int(ceil(max(duration_max - _elapsed, 0.0)))]
 
 	if _elapsed >= duration_max:
 		_stop()
 
 func _spawn_mole() -> void:
-	_active_hole = rng.randi_range(0, NUM_HOLES - 1)
-	_mole_time_left = _current_mole_up_time()
-	_holes[_active_hole].color = MOLE_COLOR
+	var free_holes: Array[int] = []
+	for i in NUM_HOLES:
+		if not _active_moles.has(i):
+			free_holes.append(i)
+	if free_holes.is_empty():
+		return
 
-func _hide_mole() -> void:
-	if _active_hole != -1:
-		_holes[_active_hole].color = HOLE_COLOR
-	_active_hole = -1
-	_spawn_timer = _current_spawn_gap()
+	var hole_index: int = free_holes[rng.randi_range(0, free_holes.size() - 1)]
+	_active_moles[hole_index] = _current_mole_up_time()
+	_holes[hole_index].color = MOLE_COLOR
+
+func _hide_mole(hole_index: int) -> void:
+	_active_moles.erase(hole_index)
+	_holes[hole_index].color = HOLE_COLOR
 
 func _input(event: InputEvent) -> void:
-	if not _running or _active_hole == -1:
+	if not _running or _active_moles.is_empty():
 		return
 	var pos := Vector2.ZERO
 	var pressed := false
@@ -151,10 +169,12 @@ func _input(event: InputEvent) -> void:
 	if not pressed:
 		return
 
-	var hole: ColorRect = _holes[_active_hole]
-	if Rect2(hole.position, hole.size).has_point(pos):
-		_hit_count += 1
-		_hide_mole()
+	for hole_index in _active_moles.keys():
+		var hole: ColorRect = _holes[hole_index]
+		if Rect2(hole.position, hole.size).has_point(pos):
+			_hit_count += 1
+			_hide_mole(hole_index)
+			return
 
 func _stop() -> void:
 	_running = false

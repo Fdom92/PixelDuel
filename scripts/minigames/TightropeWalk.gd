@@ -5,9 +5,12 @@ extends MinigameBase
 ## participantes cruzan sin caerse.
 
 @export var duration_max := 6.0
-const PUSH_INTERVAL_MIN := 0.7
-const PUSH_INTERVAL_MAX := 1.3
-const PUSH_RATE := 26.0 # inclinación por segundo mientras empuja
+const PUSH_INTERVAL_MIN := 0.6
+const PUSH_INTERVAL_MAX := 1.1
+## Con el ritmo/fuerza anteriores, un par de empujones seguidos en la misma
+## dirección casi nunca llegaban al fallo — se podía "cruzar" sin tocar la
+## pantalla. Con esto, no corregir durante 2-3 empujones sí que te tira.
+const PUSH_RATE := 46.0 # inclinación por segundo mientras empuja
 const NUDGE := 18.0 # corrección por toque
 const FAIL_THRESHOLD := 100.0
 const RESULT_DELAY := 0.8
@@ -35,7 +38,7 @@ func get_display_name() -> String:
 	return "Cuerda floja"
 
 func get_participant_count() -> int:
-	return 4
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -55,6 +58,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Toca el lado OPUESTO a la inclinación para no caerte"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -69,6 +73,7 @@ func _ready() -> void:
 
 	_time_label = Label.new()
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_time_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_time_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_time_label.position.y = -32
 	add_child(_time_label)
@@ -101,7 +106,7 @@ func _process(delta: float) -> void:
 
 	_lean = clamp(_lean + _push_direction * PUSH_RATE * delta, -140.0, 140.0)
 	_update_marker()
-	_time_label.text = "%.1fs" % max(duration_max - _elapsed, 0.0)
+	_time_label.text = "%ds" % int(ceil(max(duration_max - _elapsed, 0.0)))
 
 	if abs(_lean) >= FAIL_THRESHOLD:
 		_resolve(false)

@@ -59,7 +59,7 @@ func get_display_name() -> String:
 	return "Máquina de baile"
 
 func get_participant_count() -> int:
-	return 2
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -67,6 +67,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "¡Toca el carril justo cuando la nota cruce la línea!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -83,6 +84,7 @@ func _ready() -> void:
 
 	_stat_label = Label.new()
 	_stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_stat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_stat_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_stat_label.position.y = -32
 	add_child(_stat_label)
@@ -126,7 +128,7 @@ func _process(delta: float) -> void:
 			_notes.remove_at(i)
 			_combo = 0
 
-	_stat_label.text = "Notas: %d · Racha: %d — %.1fs" % [_hit_count, _combo, max(duration_max - _elapsed, 0.0)]
+	_stat_label.text = "Notas: %d · Racha: %d — %ds" % [_hit_count, _combo, int(ceil(max(duration_max - _elapsed, 0.0)))]
 
 	if _elapsed >= duration_max and _notes.is_empty():
 		_stop()

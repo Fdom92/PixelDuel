@@ -9,6 +9,14 @@ const SPOON_WIDTH := 16.0
 const EGG_RADIUS := 8.0
 const RESULT_DELAY := 1.0
 
+## El huevo oscila alrededor del centro de la pista, que es también donde
+## empieza la cuchara — quedarse quieto en el centro sin tocar nada ya
+## tiene, de por sí, un error medio bajo (~30% del medio ancho). Para que
+## eso no puntúe como si hubieras jugado bien, 0 puntos corresponde a un
+## error igual o peor que BASELINE_ERROR_RATIO (el "no he tocado nada"),
+## no a un error igual al ancho completo de la pista.
+const BASELINE_ERROR_RATIO := 0.28
+
 var _track: ColorRect
 var _egg: ColorRect
 var _spoon: ColorRect
@@ -35,7 +43,7 @@ func get_display_name() -> String:
 	return "Huevo en la cuchara"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -45,6 +53,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Arrastra la cuchara para seguir al huevo"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -63,6 +72,7 @@ func _ready() -> void:
 
 	_time_label = Label.new()
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_time_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_time_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_time_label.position.y = -32
 	add_child(_time_label)
@@ -95,7 +105,7 @@ func _process(delta: float) -> void:
 		_spoon.position.x = _spoon_x - SPOON_WIDTH / 2.0
 
 	_error_accum += abs(_spoon_x - target_x) * delta
-	_time_label.text = "%.1fs" % max(duration_max - _elapsed, 0.0)
+	_time_label.text = "%ds" % int(ceil(max(duration_max - _elapsed, 0.0)))
 
 	if _elapsed >= duration_max:
 		_stop()
@@ -125,7 +135,8 @@ func _stop() -> void:
 	_running = false
 	var avg_error: float = _error_accum / duration_max
 	var half_width: float = _track_width / 2.0
-	var score: float = clamp(100.0 - (avg_error / half_width) * 100.0, 0.0, 100.0)
+	var error_ratio: float = avg_error / half_width
+	var score: float = clamp(100.0 * (1.0 - error_ratio / BASELINE_ERROR_RATIO), 0.0, 100.0)
 	_info_label.text = "Puntos: %d" % int(round(score))
 
 	var timer := get_tree().create_timer(RESULT_DELAY)

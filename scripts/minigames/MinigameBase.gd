@@ -52,4 +52,4 @@ func get_display_name() -> String:
 ## en vez de un ajuste global. Sus intentos se combinan según
 ## get_aggregation_type(). Debe estar entre 1 y 5.
 func get_participant_count() -> int:
-	return 3
+	return 1

@@ -12,10 +12,17 @@ const BALL_RADIUS := 8.0
 const WALL_BOUNCE_DAMPING := 0.85
 const LAUNCH_CHARGE_SPEED := 150.0
 const LAUNCH_MAX_SPEED := 420.0
-const FLIP_Y_STRENGTH := 380.0
+## Con 380 un golpe de flipper nunca llegaba a los topos (le faltaban
+## unos 460 de velocidad para subir esos ~200px) — solo se podía puntuar
+## en el lanzamiento inicial. Con 480 sí llega a los dos topos de abajo.
+const FLIP_Y_STRENGTH := 480.0
 const FLIP_X_STRENGTH := 140.0
 const BUMPER_RADIUS := 20.0
 const BUMPER_MIN_BOUNCE_SPEED := 260.0
+## Cada rebote en un tope añade algo de energía y varía un poco el ángulo,
+## para que no sea siempre exactamente el mismo bote determinista.
+const BUMPER_ENERGY_BOOST := 1.08
+const BUMPER_ANGLE_JITTER := 0.15 # radianes, ~8.6°
 const BUMPER_COOLDOWN := 0.15
 const FLIPPER_ZONE_HEIGHT := 34.0
 const RESULT_DELAY := 1.0
@@ -56,7 +63,7 @@ func get_display_name() -> String:
 	return "Petaco"
 
 func get_participant_count() -> int:
-	return 2
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -98,6 +105,7 @@ func _ready() -> void:
 
 	_stat_label = Label.new()
 	_stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_stat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_stat_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_stat_label.position.y = -32
 	add_child(_stat_label)
@@ -152,7 +160,7 @@ func _process(delta: float) -> void:
 	elif _state == "playing":
 		_update_physics(delta)
 
-	_stat_label.text = "Puntos: %d — %.1fs" % [_score, max(duration_max - _elapsed, 0.0)]
+	_stat_label.text = "Puntos: %d — %ds" % [_score, int(ceil(max(duration_max - _elapsed, 0.0)))]
 
 func _update_physics(delta: float) -> void:
 	_ball_vel.y += GRAVITY * delta
@@ -176,8 +184,9 @@ func _update_physics(delta: float) -> void:
 		var dist: float = to_ball.length()
 		if dist < BUMPER_RADIUS + BALL_RADIUS:
 			var normal: Vector2 = to_ball.normalized() if dist > 0.001 else Vector2.UP
+			normal = normal.rotated(rng.randf_range(-BUMPER_ANGLE_JITTER, BUMPER_ANGLE_JITTER))
 			_ball_pos = bumper["pos"] + normal * (BUMPER_RADIUS + BALL_RADIUS + 1.0)
-			var speed: float = max(_ball_vel.length(), BUMPER_MIN_BOUNCE_SPEED)
+			var speed: float = max(_ball_vel.length() * BUMPER_ENERGY_BOOST, BUMPER_MIN_BOUNCE_SPEED)
 			_ball_vel = normal * speed
 			_score += int(bumper["points"])
 			bumper["cooldown"] = BUMPER_COOLDOWN

@@ -196,22 +196,22 @@ func _format_value(value: float) -> String:
 		_: # "best" / "average"
 			return "%d pts" % int(round(value))
 
-func _on_round_finished(round_index: int, winner: int, p1_score: float, p2_score: float, is_double: bool) -> void:
+func _on_round_finished(_round_index: int, winner: int, _p1_score: float, _p2_score: float, is_double: bool) -> void:
 	var win_pts: int = MatchManager.POINTS_WIN_DOUBLE if is_double else MatchManager.POINTS_WIN
 	var lose_pts: int = MatchManager.POINTS_LOSE_DOUBLE if is_double else MatchManager.POINTS_LOSE
 	var p1_pts: int = win_pts if winner == 1 else lose_pts
 	var p2_pts: int = win_pts if winner == 2 else lose_pts
+	var totals: Dictionary = MatchManager.points()
 
 	var winner_text := "Empate" if winner == 0 else "Gana el Jugador %d" % winner
-	var prefix := "¡Puntos dobles! " if is_double else ""
-	_round_result_label.text = "%sRonda %d\nJugador 1: %s (+%d pts)\nJugador 2: %s (+%d pts)\n%s" % [
-		prefix, round_index + 1, _format_value(p1_score), p1_pts, _format_value(p2_score), p2_pts, winner_text
+	_round_result_label.text = "%s\nJugador 1: %d puntos (+%d)\nJugador 2: %d puntos (+%d)" % [
+		winner_text, totals[1], p1_pts, totals[2], p2_pts
 	]
 	_show_only(_round_result_panel)
 
 func _on_match_finished(winner: int, points: Dictionary) -> void:
 	var winner_text := "¡Empate!" if winner == 0 else "¡Gana el Jugador %d!" % winner
-	_final_result_label.text = "Resultado final\nJugador 1: %d puntos\nJugador 2: %d puntos\n%s" % [
-		points[1], points[2], winner_text
+	_final_result_label.text = "%s\n\nJugador 1: %d puntos\nJugador 2: %d puntos" % [
+		winner_text, points[1], points[2]
 	]
 	_show_only(_final_result_panel)

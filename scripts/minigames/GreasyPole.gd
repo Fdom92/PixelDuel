@@ -41,7 +41,7 @@ func get_display_name() -> String:
 	return "La cucaña"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -49,6 +49,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "¡Toca sin parar para trepar y coger premios!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -63,6 +64,7 @@ func _ready() -> void:
 
 	_time_label = Label.new()
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_time_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_time_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_time_label.position.y = -32
 	add_child(_time_label)
@@ -106,7 +108,7 @@ func _process(delta: float) -> void:
 	_height = clamp(_height - slide_rate * delta, 0.0, _track_height)
 	_check_prizes()
 	_update_climber()
-	_time_label.text = "Premios: %d — %.1fs" % [_collected_count, max(duration_max - _elapsed, 0.0)]
+	_time_label.text = "Premios: %d — %ds" % [_collected_count, int(ceil(max(duration_max - _elapsed, 0.0)))]
 
 	if _elapsed >= duration_max or _height >= _track_height:
 		_stop()

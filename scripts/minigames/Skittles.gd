@@ -1,18 +1,19 @@
 extends MinigameBase
 ## Bolos: haz un swipe hacia arriba para lanzar la bola. Los bolos están en
 ## triángulo, como en los bolos de verdad — la punta más cerca de la bola,
-## la fila del fondo más lejos. Cuánto derribas depende de dónde apunta el
-## swipe (deriva horizontal del gesto) y de la potencia: más potencia =
-## radio de impacto más grande, como una reacción en cadena de verdad.
+## la fila del fondo más lejos. Se ve la bola rodar de verdad en línea
+## recta desde donde la sueltas: la potencia determina hasta dónde llega
+## y la deriva horizontal del swipe determina hacia dónde se desvía. Solo
+## derriba los bolos que la bola toca de verdad a su paso — nada de
+## radios de impacto enormes, hay que apuntar bien.
 ## Recolección acumulada: se suman los bolos derribados por todos los
 ## participantes.
 
 const PIN_ROWS := [1, 2, 3, 4] # de la punta (cerca de la bola) al fondo
 const NUM_PINS := 10
-const MIN_POWER_RATIO := 0.35
 const RESULT_DELAY := 1.0
-const KNOCK_RADIUS_BASE := 34.0 # radio de impacto a potencia mínima
-const KNOCK_RADIUS_MAX := 130.0 # radio de impacto a máxima potencia
+const ROLL_DURATION := 0.45
+const HIT_RADIUS := 20.0 # bola + medio bolo, aprox. — nada de radios enormes
 
 var _ball: ColorRect
 var _pins: Array[ColorRect] = []
@@ -21,7 +22,12 @@ var _info_label: Label
 var _start_pos := Vector2.ZERO
 var _dragging := false
 var _done := false
-var _apex_y := 0.0
+var _rolling := false
+var _roll_t := 0.0
+var _ball_start: Vector2 = Vector2.ZERO
+var _ball_target: Vector2 = Vector2.ZERO
+var _back_row_y := 0.0
+var _knocked := 0
 
 func get_aggregation_type() -> String:
 	return "collect_sum"
@@ -36,7 +42,7 @@ func get_display_name() -> String:
 	return "Bolos"
 
 func get_participant_count() -> int:
-	return 4
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -44,6 +50,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Desliza hacia arriba para lanzar, apunta con la deriva"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -81,8 +88,31 @@ func _layout() -> void:
 			_pins[pin_index].position = Vector2(x, row_y)
 			pin_index += 1
 
-	_apex_y = start_y + (num_rows - 1) * spacing_y
-	_ball.position = Vector2(vp.x / 2.0 - _ball.size.x / 2.0, vp.y - 64.0)
+	_back_row_y = start_y
+	_ball_start = Vector2(vp.x / 2.0 - _ball.size.x / 2.0, vp.y - 64.0)
+	_ball.position = _ball_start
+
+func _process(delta: float) -> void:
+	if not _rolling:
+		return
+	_roll_t += delta
+	var t: float = clamp(_roll_t / ROLL_DURATION, 0.0, 1.0)
+	_ball.position = _ball_start.lerp(_ball_target, t)
+	_check_pin_collisions()
+	if t >= 1.0:
+		_rolling = false
+		_resolve()
+
+func _check_pin_collisions() -> void:
+	var ball_center: Vector2 = _ball.position + _ball.size / 2.0
+	for pin in _pins:
+		if pin.get_meta("knocked", false):
+			continue
+		var pin_center: Vector2 = pin.position + pin.size / 2.0
+		if ball_center.distance_to(pin_center) <= HIT_RADIUS:
+			pin.set_meta("knocked", true)
+			pin.color = Color(0.35, 0.32, 0.3)
+			_knocked += 1
 
 func _input(event: InputEvent) -> void:
 	if _done:
@@ -106,18 +136,16 @@ func _on_release(end_pos: Vector2) -> void:
 	var max_swipe: float = vp.y * 0.6
 	var power_ratio: float = clamp(vector.length() / max_swipe, 0.0, 1.0)
 
-	var knocked := 0
-	if power_ratio >= MIN_POWER_RATIO:
-		var aim_x: float = vp.x / 2.0 + vector.x
-		var impact_radius: float = lerp(KNOCK_RADIUS_BASE, KNOCK_RADIUS_MAX, power_ratio)
-		var impact_point := Vector2(aim_x, _apex_y)
-		for pin in _pins:
-			var pin_center: Vector2 = pin.position + pin.size / 2.0
-			if pin_center.distance_to(impact_point) <= impact_radius:
-				pin.color = Color(0.35, 0.32, 0.3)
-				knocked += 1
+	var aim_x: float = clamp(vp.x / 2.0 + vector.x, 0.0, vp.x)
+	var end_y: float = lerp(_ball_start.y, _back_row_y - 12.0, power_ratio)
 
-	_info_label.text = "Bolos derribados: %d" % knocked
+	_ball_start = _ball.position
+	_ball_target = Vector2(aim_x - _ball.size.x / 2.0, end_y)
+	_roll_t = 0.0
+	_rolling = true
+
+func _resolve() -> void:
+	_info_label.text = "Bolos derribados: %d" % _knocked
 
 	var timer := get_tree().create_timer(RESULT_DELAY)
-	timer.timeout.connect(func(): _finish(float(knocked)))
+	timer.timeout.connect(func(): _finish(float(_knocked)))

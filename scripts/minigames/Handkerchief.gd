@@ -31,7 +31,7 @@ func get_display_name() -> String:
 	return "El pañuelo"
 
 func get_participant_count() -> int:
-	return 4
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -39,6 +39,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Espera la señal... ¡cuidado con los amagos!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)

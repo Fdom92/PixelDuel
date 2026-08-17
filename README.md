@@ -1,11 +1,11 @@
 # PixelDuel — prototipo técnico (v0.0.1)
 
 Prototipo de duelo 1vs1 "pasa el móvil": un bucket de pruebas del que se
-eligen N al azar. Cada jugador representa un equipo con varios
-"participantes" (nº fijo por prueba, como en el Gran Prix real — no todas
-las pruebas tienen el mismo nº de gente probándolas) que juegan la misma
-prueba por turnos; sus resultados se combinan según el tipo de la prueba
-y se comparan contra el otro jugador.
+eligen N al azar. Cada jugador juega cada prueba una sola vez por ronda
+(sin repeticiones ni intentos de "equipo") y su resultado se compara
+directamente contra el otro jugador — prioriza partidas ágiles y
+dinámicas sobre el realismo del Gran Prix real, donde varios vecinos del
+pueblo intentan la misma prueba.
 
 ## Cómo abrirlo
 
@@ -36,10 +36,14 @@ scenes/
 
 ## Cómo funciona una partida
 
-1. **Participantes por prueba, no configurables** — cada prueba declara
-   su propio nº de participantes con `get_participant_count()` (entre 2 y
-   4 según la prueba, ver tabla de pruebas). Sus intentos se combinan
-   según el tipo de la prueba (mejor, media, éxitos, suma).
+1. **Un solo intento por prueba y jugador** — `get_participant_count()`
+   existe en `MinigameBase` (por si en el futuro interesa que alguna
+   prueba concreta tenga varios intentos, como en el Gran Prix real),
+   pero ahora mismo las 17 pruebas devuelven 1: se probó con varios
+   intentos por prueba y se sintió repetitivo dentro de una misma ronda,
+   así que se priorizó la agilidad. El tipo de agregación de cada prueba
+   (mejor, media, éxitos, suma) sigue aplicando igual sobre ese único
+   valor.
 2. **Semillas compartidas por ronda** — cada prueba de cada ronda se
    sortea una vez y se reutiliza para los dos jugadores y todos sus
    participantes, así el elemento aleatorio (si lo hay) es idéntico para
@@ -57,11 +61,12 @@ scenes/
 
 ## Los 4 tipos de agregación
 
-Cada prueba declara su tipo con `get_aggregation_type()`. Con N
-participantes por jugador, cada uno juega la prueba una vez y sus
-resultados se combinan según el tipo:
+Cada prueba declara su tipo con `get_aggregation_type()`. Con
+`get_participant_count()` en 1 para las 17 pruebas, hoy solo se aplica
+sobre un único intento, pero el sistema sigue soportando N intentos por
+si alguna prueba concreta vuelve a tenerlos:
 
-| Tipo | Cómo se combinan los N intentos | Sensación |
+| Tipo | Cómo se combinarían N intentos | Sensación |
 |---|---|---|
 | `best` | Se queda el mejor resultado (0-100) | Un crack puede salvar al equipo |
 | `average` | Se promedian los resultados (0-100) | Premia que todo el equipo sea bueno |
@@ -76,12 +81,12 @@ prueba declara la suya con `get_mechanic_category()`.
 | Categoría | Nº | Pruebas |
 |---|---|---|
 | `spam_toques` | 2 | Carrera de sacos, La cucaña |
-| `carga_suelta` | 2 | La rana, Canastas |
+| `carga_suelta` | 1 | Canastas |
 | `reaccion` | 2 | El pañuelo, Caza al topo |
 | `timing_objetivo` | 2 | Cruzar el río de troncos, Morder la manzana |
 | `equilibrio` | 2 | Transporte del cubo de agua, Cuerda floja |
 | `arrastre` | 2 | Huevo en la cuchara, Pesca de patos |
-| `swipe` | 2 | Carrera de obstáculos, Bolos |
+| `swipe` | 3 | Carrera de obstáculos, Bolos, La rana |
 | `memoria` | 1 | Memoria de banderines |
 | `ritmo` | 1 | Máquina de baile |
 | `flippers` | 1 | Petaco |
@@ -97,13 +102,13 @@ prueba declara la suya con `get_mechanic_category()`.
 | Huevo en la cuchara | `EggAndSpoon.gd` | `average` | `arrastre` | 12s | Arrastrar para seguir un objetivo que se mueve solo |
 | Transporte del cubo de agua | `WaterBucket.gd` | `average` | `equilibrio` | 12s | Tocar "estabilizar" con cooldown — el spam no ayuda |
 | Cruzar el río de troncos | `RiverCrossing.gd` | `success_count` | `timing_objetivo` | — | Camino de 5 troncos seguidos, tocar en el pico de estabilidad de cada uno — fallar uno te cae al río y acaba el intento |
-| Carrera de obstáculos | `ObstacleRun.gd` | `success_count` | `swipe` | — | Fila de 5 obstáculos cada vez más rápidos, swipe hacia arriba (salto de verdad) justo al cruzar la línea — un swipe flojo/torcido o mal timing te hace tropezar y acaba el intento |
+| Carrera de obstáculos | `ObstacleRun.gd` | `success_count` | `swipe` | — | Corres hacia la derecha y 5 obstáculos se acercan desde el otro lado, cada vez más rápidos — swipe hacia arriba (salto de verdad) justo cuando lleguen a ti. Un swipe flojo/torcido o mal timing te hace tropezar y acaba el intento |
 | Cuerda floja | `TightropeWalk.gd` | `success_count` | `equilibrio` | 6s | Ráfagas de viento aleatorias, corregir tocando el lado opuesto a la inclinación |
-| Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 12s | Tablero de 6 agujeros; un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato y con más frecuencia, hasta casi encadenarse al final |
+| Caza al topo | `MoleWhack.gd` | `collect_sum` | `reaccion` | 12s | Tablero de 24 agujeros (4x6); un topo asoma al azar un instante, tócalo antes de que se esconda — importa dónde tocas, no solo cuántas veces. Según pasa el tiempo asoma menos rato, con más frecuencia y pueden salir hasta 3 a la vez en los últimos segundos |
 | Pesca de patos | `DuckFishing.gd` | `collect_sum` | `arrastre` | 12s | Estilo caseta de feria: patos cruzan el río en horizontal por 3 carriles a distinta velocidad; arrastra la red arriba/abajo. Cada pato tiene su propio valor — dorados valen más pero van más rápido, podridos restan si se pescan |
 | La cucaña | `GreasyPole.gd` | `collect_sum` | `spam_toques` | 12s | Tocar sin parar para trepar y coger premios antes de resbalar (el resbalón crece cerca de la cima) |
 | Morder la manzana | `AppleBite.gd` | `collect_sum` | `timing_objetivo` | 12s | Manzana que se balancea sola, tocar en el centro con cooldown por toque — cuenta los mordiscos conseguidos |
-| Bolos | `Skittles.gd` | `collect_sum` | `swipe` | — | Swipe de lanzamiento: precisión del ángulo y potencia determinan cuántos bolos caen |
+| Bolos | `Skittles.gd` | `collect_sum` | `swipe` | — | Swipe de lanzamiento: se ve la bola rodar de verdad en línea recta y solo derriba los bolos (en triángulo) que toca a su paso — potencia y deriva del gesto determinan hasta dónde llega y hacia dónde se desvía |
 | Canastas | `Basketball.gd` | `collect_sum` | `carga_suelta` | 12s | Cargar potencia y soltar para tirar a un aro que cambia de sitio en cada tiro — encesta tantas veces como puedas antes de que se acabe el tiempo |
 | Máquina de baile | `DanceMachine.gd` | `collect_sum` | `ritmo` | 12s | 4 carriles, las notas caen hacia una línea — toca el carril correcto justo cuando la cruzan. La racha de aciertos acelera el ritmo y puede sacar notas dobles; fallar una la resetea. A diferencia de Memoria (memorizar y repetir después), aquí reaccionas en directo a varios carriles a la vez |
 | Petaco | `Pinball.gd` | `collect_sum` | `flippers` | 14s | Cargar y soltar para lanzar la bola; mantén pulsado el lado izq./der. para levantar ese flipper y no dejarla caer por el hueco central. Única prueba con física de rebote de verdad (gravedad, topes, paredes) — el resto son temporizador + input |
@@ -145,24 +150,14 @@ sepa qué tiene que batir antes de empezar.
 
 ## Participantes por prueba
 
-Cada `MinigameBase` declara cuántos "vecinos" del equipo la intentan por
-jugador con `get_participant_count()` (1-5, aunque en la práctica todas
-están entre 2 y 4). `Main.gd` lo lee instanciando la escena fuera del
-árbol (igual que hace con `get_display_name()`) justo antes de mostrar la
-intro de la ronda. No es configurable desde el menú — es una propiedad de
-cada prueba, como en el Gran Prix real (unas pruebas las intenta más
-gente que otras):
-
-| Participantes | Pruebas |
-|---|---|
-| 2 | Memoria de banderines, Máquina de baile, Petaco |
-| 3 | Carrera de sacos, Caza al topo, Huevo en la cuchara, Carrera de obstáculos, Pesca de patos, Cruzar el río de troncos, Cubo de agua, La cucaña, Morder la manzana, Canastas |
-| 4 | Cuerda floja, La rana, El pañuelo, Bolos |
-
-Las de 2 son las más largas/intensas por intento (Petaco 14s, Baile 12s) o
-las que más se alargan por diseño (Banderines crece cada ronda superada).
-Las de 4 son gestos rápidos (un lanzamiento, una reacción) donde más
-intentos no alargan mucho la ronda.
+Cada `MinigameBase` declara cuántos intentos hace cada jugador con
+`get_participant_count()`. `Main.gd` lo lee instanciando la escena fuera
+del árbol (igual que hace con `get_display_name()`) justo antes de
+mostrar la intro de la ronda. No es configurable desde el menú. Las 17
+pruebas devuelven 1 — se probó con varios intentos por prueba (2-4 según
+la prueba) y resultaba repetitivo dentro de una misma ronda, así que se
+simplificó a un único intento por agilidad; la infraestructura para más
+de uno se queda por si alguna prueba concreta lo pide en el futuro.
 
 ## Flujo de una partida
 
@@ -170,13 +165,10 @@ intentos no alargan mucho la ronda.
    de las 17 disponibles) pruebas del bucket, sin repetir categoría
    mientras queden libres.
 2. Por cada ronda y jugador: pantalla "pasa el móvil al Jugador X" (con
-   el resultado a batir si es el Jugador 2) → "Listo" → se repite tantas
-   veces como indique `get_participant_count()` de la prueba:
-   "Empezar"/"Siguiente participante" → se instancia la prueba (con la
-   seed de la ronda) → llama a `_finish(valor)` → vuelve a la intro hasta
-   agotar los intentos.
-3. `Main.gd` combina los N valores según el tipo de la prueba y envía el
-   resultado a `MatchManager.submit_score()`.
+   el resultado a batir si es el Jugador 2) → "Listo" → intro de la
+   prueba → "Empezar" → se instancia la prueba (con la seed de la ronda)
+   → llama a `_finish(valor)`.
+3. `Main.gd` envía ese valor a `MatchManager.submit_score()`.
 4. Se comparan los resultados agregados de la ronda para ver quién gana
    esa prueba, y eso se traduce en puntos de partida: +2 para quien gana,
    +1 para quien pierde (empate: +1 para ambos). Una ronda al azar por

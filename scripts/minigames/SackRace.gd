@@ -27,7 +27,7 @@ func get_display_name() -> String:
 	return "Carrera de sacos"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -36,6 +36,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "¡Alterna izquierda / derecha lo más rápido posible!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -54,12 +55,14 @@ func _ready() -> void:
 
 	_count_label = Label.new()
 	_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_count_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_count_label.set_anchors_preset(Control.PRESET_CENTER)
 	_count_label.add_theme_font_size_override("font_size", 28)
 	add_child(_count_label)
 
 	_time_label = Label.new()
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_time_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_time_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_time_label.position.y = -32
 	add_child(_time_label)
@@ -79,7 +82,7 @@ func _process(delta: float) -> void:
 
 func _update_labels() -> void:
 	_count_label.text = "%d" % _count
-	_time_label.text = "%.1fs" % _time_left
+	_time_label.text = "%ds" % int(ceil(_time_left))
 
 func _input(event: InputEvent) -> void:
 	if not _running:

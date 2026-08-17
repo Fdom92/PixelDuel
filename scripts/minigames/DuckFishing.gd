@@ -61,7 +61,7 @@ func get_display_name() -> String:
 	return "Pesca de patos"
 
 func get_participant_count() -> int:
-	return 3
+	return 1
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -80,6 +80,7 @@ func _ready() -> void:
 
 	_stat_label = Label.new()
 	_stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_stat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_stat_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_stat_label.position.y = -32
 	add_child(_stat_label)
@@ -145,7 +146,7 @@ func _process(delta: float) -> void:
 			rect.queue_free()
 			_ducks.remove_at(i)
 
-	_stat_label.text = "Puntos: %d — %.1fs" % [_caught_points, max(duration_max - _elapsed, 0.0)]
+	_stat_label.text = "Puntos: %d — %ds" % [_caught_points, int(ceil(max(duration_max - _elapsed, 0.0)))]
 
 	if _elapsed >= duration_max and _ducks.is_empty():
 		_stop()
