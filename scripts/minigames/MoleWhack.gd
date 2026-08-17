@@ -5,7 +5,7 @@ extends MinigameBase
 ## Recolección acumulada: se suman los topos cazados por todos los
 ## participantes.
 
-@export var duration_max := 7.0
+@export var duration_max := 12.0
 const COLS := 2
 const ROWS := 3
 const NUM_HOLES := COLS * ROWS
