@@ -104,7 +104,7 @@ func _on_swipe_released(end_pos: Vector2) -> void:
 		var degrees: float = rad_to_deg(atan2(vector.y, vector.x))
 		valid_swipe = abs(degrees - 90.0) <= ANGLE_TOLERANCE
 
-	var timing_ok := abs(_obstacle_y - _hit_line_y) <= SUCCESS_WINDOW
+	var timing_ok: bool = abs(_obstacle_y - _hit_line_y) <= SUCCESS_WINDOW
 
 	if valid_swipe and timing_ok:
 		_advance()
