@@ -10,7 +10,6 @@ var _round_result_panel: VBoxContainer
 var _final_result_panel: VBoxContainer
 var _minigame_container: Control
 
-var _participants_label: Label
 var _round_intro_label: Label
 var _start_turn_button: Button
 var _pass_device_label: Label
@@ -25,6 +24,7 @@ var _attempt_values: Array[float] = []
 var _current_aggregation_type := "average"
 var _current_unit_label := "pts"
 var _current_minigame_name := "Prueba"
+var _current_participant_count := 3
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -34,7 +34,6 @@ func _ready() -> void:
 	MatchManager.round_finished.connect(_on_round_finished)
 	MatchManager.match_finished.connect(_on_match_finished)
 
-	_update_participants_label()
 	_show_only(_menu_panel)
 
 func _build_ui() -> void:
@@ -45,21 +44,6 @@ func _build_ui() -> void:
 
 	var subtitle := _make_label("%d pruebas · pasa el móvil entre jugadores" % MatchManager.ROUNDS_TOTAL)
 	_menu_panel.add_child(subtitle)
-
-	var participants_row := HBoxContainer.new()
-	participants_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	participants_row.add_theme_constant_override("separation", 12)
-	var minus_btn := Button.new()
-	minus_btn.text = "-"
-	minus_btn.pressed.connect(_on_participants_minus_pressed)
-	participants_row.add_child(minus_btn)
-	_participants_label = _make_label("")
-	participants_row.add_child(_participants_label)
-	var plus_btn := Button.new()
-	plus_btn.text = "+"
-	plus_btn.pressed.connect(_on_participants_plus_pressed)
-	participants_row.add_child(plus_btn)
-	_menu_panel.add_child(participants_row)
 
 	var play_btn := Button.new()
 	play_btn.text = "Jugar"
@@ -130,17 +114,6 @@ func _show_only(panel: Control) -> void:
 	for p in [_menu_panel, _round_intro_panel, _pass_device_panel, _round_result_panel, _final_result_panel, _minigame_container]:
 		p.visible = (p == panel)
 
-func _on_participants_minus_pressed() -> void:
-	MatchManager.participants_per_player = max(MatchManager.MIN_PARTICIPANTS, MatchManager.participants_per_player - 1)
-	_update_participants_label()
-
-func _on_participants_plus_pressed() -> void:
-	MatchManager.participants_per_player = min(MatchManager.MAX_PARTICIPANTS, MatchManager.participants_per_player + 1)
-	_update_participants_label()
-
-func _update_participants_label() -> void:
-	_participants_label.text = "Participantes: %d" % MatchManager.participants_per_player
-
 func _on_turn_started(player: int) -> void:
 	_pending_player = player
 	var text := "Pasa el móvil al Jugador %d" % player
@@ -155,17 +128,17 @@ func _on_turn_started(player: int) -> void:
 func _on_pass_device_ready_pressed() -> void:
 	_attempt_index = 0
 	_attempt_values = []
-	_current_minigame_name = _peek_minigame_name()
+	_peek_minigame_info()
 	_show_round_intro()
 
-## Instancia la escena fuera del árbol solo para leer su nombre para
-## mostrar, y la libera al momento — igual que MatchManager._category_of().
-func _peek_minigame_name() -> String:
+## Instancia la escena fuera del árbol solo para leer su nombre y su nº de
+## participantes, y la libera al momento — igual que MatchManager._category_of().
+func _peek_minigame_info() -> void:
 	var scene: PackedScene = MatchManager.current_minigame_scene()
 	var temp: MinigameBase = scene.instantiate()
-	var name := temp.get_display_name()
+	_current_minigame_name = temp.get_display_name()
+	_current_participant_count = clamp(temp.get_participant_count(), MatchManager.MIN_PARTICIPANTS, MatchManager.MAX_PARTICIPANTS)
 	temp.free()
-	return name
 
 func _show_round_intro() -> void:
 	var text := "%s\nRonda %d/%d\nJugador %d" % [
@@ -173,8 +146,8 @@ func _show_round_intro() -> void:
 	]
 	if MatchManager.is_current_round_double():
 		text += "\n¡Puntos dobles!"
-	if MatchManager.participants_per_player > 1:
-		text += "\nParticipante %d/%d" % [_attempt_index + 1, MatchManager.participants_per_player]
+	if _current_participant_count > 1:
+		text += "\nParticipante %d/%d" % [_attempt_index + 1, _current_participant_count]
 	_round_intro_label.text = text
 	_start_turn_button.text = "Empezar" if _attempt_index == 0 else "Siguiente participante"
 	_show_only(_round_intro_panel)
@@ -197,7 +170,7 @@ func _on_minigame_finished(value: float) -> void:
 	_attempt_values.append(value)
 	_attempt_index += 1
 
-	if _attempt_index < MatchManager.participants_per_player:
+	if _attempt_index < _current_participant_count:
 		_show_round_intro()
 	else:
 		MatchManager.submit_score(_aggregate_attempts())
@@ -220,7 +193,7 @@ func _aggregate_attempts() -> float:
 func _format_value(value: float) -> String:
 	match _current_aggregation_type:
 		"success_count":
-			return "%d/%d" % [int(round(value)), MatchManager.participants_per_player]
+			return "%d/%d" % [int(round(value)), _current_participant_count]
 		"collect_sum":
 			return "%d %s" % [int(round(value)), _current_unit_label]
 		_: # "best" / "average"

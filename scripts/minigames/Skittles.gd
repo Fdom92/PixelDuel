@@ -35,6 +35,9 @@ func get_mechanic_category() -> String:
 func get_display_name() -> String:
 	return "Bolos"
 
+func get_participant_count() -> int:
+	return 4
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 

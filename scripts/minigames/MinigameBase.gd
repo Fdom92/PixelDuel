@@ -2,7 +2,7 @@ extends Control
 class_name MinigameBase
 ## Base interface every minigame in the bucket must extend.
 ## Call _finish(value) once, when a single attempt's outcome is decided.
-## When participants_per_player > 1, the same scene is instantiated once
+## When get_participant_count() > 1, the same scene is instantiated once
 ## per participant and the raw values are combined according to
 ## get_aggregation_type():
 ##   "best"          -> value is a 0-100 score, the highest attempt counts
@@ -46,3 +46,10 @@ func get_mechanic_category() -> String:
 ## de ronda antes de pulsar "Empezar".
 func get_display_name() -> String:
 	return "Prueba"
+
+## Cuántos "vecinos" del equipo intentan esta prueba por jugador — como en
+## el Gran Prix real, cada prueba tiene su propio número de participantes
+## en vez de un ajuste global. Sus intentos se combinan según
+## get_aggregation_type(). Debe estar entre 1 y 5.
+func get_participant_count() -> int:
+	return 3

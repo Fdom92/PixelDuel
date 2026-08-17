@@ -36,6 +36,9 @@ func get_mechanic_category() -> String:
 func get_display_name() -> String:
 	return "Transporte del cubo de agua"
 
+func get_participant_count() -> int:
+	return 3
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 

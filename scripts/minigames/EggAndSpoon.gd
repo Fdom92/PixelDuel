@@ -34,6 +34,9 @@ func get_mechanic_category() -> String:
 func get_display_name() -> String:
 	return "Huevo en la cuchara"
 
+func get_participant_count() -> int:
+	return 3
+
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_phase_a = rng.randf_range(0.0, TAU)

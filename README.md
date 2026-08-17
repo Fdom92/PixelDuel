@@ -2,7 +2,8 @@
 
 Prototipo de duelo 1vs1 "pasa el móvil": un bucket de pruebas del que se
 eligen N al azar. Cada jugador representa un equipo con varios
-"participantes" (nº configurable antes de empezar) que juegan la misma
+"participantes" (nº fijo por prueba, como en el Gran Prix real — no todas
+las pruebas tienen el mismo nº de gente probándolas) que juegan la misma
 prueba por turnos; sus resultados se combinan según el tipo de la prueba
 y se comparan contra el otro jugador.
 
@@ -35,9 +36,10 @@ scenes/
 
 ## Cómo funciona una partida
 
-1. **Participantes configurables** — de 1 a 5 por jugador, ajustable en
-   el menú antes de empezar. Sus intentos se combinan según el tipo de
-   la prueba (mejor, media, éxitos, suma).
+1. **Participantes por prueba, no configurables** — cada prueba declara
+   su propio nº de participantes con `get_participant_count()` (entre 2 y
+   4 según la prueba, ver tabla de pruebas). Sus intentos se combinan
+   según el tipo de la prueba (mejor, media, éxitos, suma).
 2. **Semillas compartidas por ronda** — cada prueba de cada ronda se
    sortea una vez y se reutiliza para los dos jugadores y todos sus
    participantes, así el elemento aleatorio (si lo hay) es idéntico para
@@ -141,22 +143,38 @@ muestra el resultado agregado que dejó el Jugador 1 en esa prueba
 `_format_value()` que usa el resultado de ronda), para que el Jugador 2
 sepa qué tiene que batir antes de empezar.
 
-## Configuración de participantes
+## Participantes por prueba
 
-`MatchManager.participants_per_player` (por defecto 3, ajustable de 1 a 5
-con los botones -/+ del menú) define cuántas veces juega cada jugador
-cada prueba antes de combinarse en un resultado de ronda.
+Cada `MinigameBase` declara cuántos "vecinos" del equipo la intentan por
+jugador con `get_participant_count()` (1-5, aunque en la práctica todas
+están entre 2 y 4). `Main.gd` lo lee instanciando la escena fuera del
+árbol (igual que hace con `get_display_name()`) justo antes de mostrar la
+intro de la ronda. No es configurable desde el menú — es una propiedad de
+cada prueba, como en el Gran Prix real (unas pruebas las intenta más
+gente que otras):
+
+| Participantes | Pruebas |
+|---|---|
+| 2 | Memoria de banderines, Máquina de baile, Petaco |
+| 3 | Carrera de sacos, Caza al topo, Huevo en la cuchara, Carrera de obstáculos, Pesca de patos, Cruzar el río de troncos, Cubo de agua, La cucaña, Morder la manzana, Canastas |
+| 4 | Cuerda floja, La rana, El pañuelo, Bolos |
+
+Las de 2 son las más largas/intensas por intento (Petaco 14s, Baile 12s) o
+las que más se alargan por diseño (Banderines crece cada ronda superada).
+Las de 4 son gestos rápidos (un lanzamiento, una reacción) donde más
+intentos no alargan mucho la ronda.
 
 ## Flujo de una partida
 
-1. Menú → ajustar nº de participantes → "Jugar" → `MatchManager.start_match()`
-   elige `ROUNDS_TOTAL` (5 de las 17 disponibles) pruebas del bucket, sin
-   repetir categoría mientras queden libres.
+1. Menú → "Jugar" → `MatchManager.start_match()` elige `ROUNDS_TOTAL` (5
+   de las 17 disponibles) pruebas del bucket, sin repetir categoría
+   mientras queden libres.
 2. Por cada ronda y jugador: pantalla "pasa el móvil al Jugador X" (con
-   el resultado a batir si es el Jugador 2) → "Listo" → se repite
-   `participants_per_player` veces: "Empezar"/"Siguiente participante" →
-   se instancia la prueba (con la seed de la ronda) → llama a
-   `_finish(valor)` → vuelve a la intro hasta agotar los intentos.
+   el resultado a batir si es el Jugador 2) → "Listo" → se repite tantas
+   veces como indique `get_participant_count()` de la prueba:
+   "Empezar"/"Siguiente participante" → se instancia la prueba (con la
+   seed de la ronda) → llama a `_finish(valor)` → vuelve a la intro hasta
+   agotar los intentos.
 3. `Main.gd` combina los N valores según el tipo de la prueba y envía el
    resultado a `MatchManager.submit_score()`.
 4. Se comparan los resultados agregados de la ronda para ver quién gana

@@ -22,11 +22,6 @@ const POINTS_LOSE := 1
 const POINTS_WIN_DOUBLE := 4
 const POINTS_LOSE_DOUBLE := 2
 
-## Nº de "vecinos" que juega cada jugador por prueba; sus intentos se
-## combinan según el tipo de agregación de la prueba. Configurable desde
-## el menú antes de empezar la partida.
-var participants_per_player := 3
-
 ## Add new minigame scenes here to include them in the random pool.
 var bucket: Array[PackedScene] = [
 	preload("res://scenes/minigames/SackRace.tscn"),
