@@ -11,6 +11,13 @@ const LOG_DURATION_MAX := 2.5
 const SUCCESS_THRESHOLD := 60.0 # estabilidad mínima (0-100) para cruzar bien
 const RESULT_DELAY := 0.8
 
+## Cada tronco es un poco más exigente que el anterior: sube el umbral de
+## estabilidad y se acorta el tiempo en que el tronco está lo bastante
+## verde, así que el último tronco exige un timing casi perfecto.
+const THRESHOLD_STEP := 5.0
+const DURATION_SHRINK_STEP := 0.15
+const DURATION_MIN_FLOOR := 1.0
+
 var _log_rect: ColorRect
 var _info_label: Label
 var _progress_label: Label
@@ -61,8 +68,14 @@ func _layout() -> void:
 
 func _start_log() -> void:
 	_t = 0.0
-	_log_duration = rng.randf_range(LOG_DURATION_MIN, LOG_DURATION_MAX)
+	var shrink: float = _log_index * DURATION_SHRINK_STEP
+	var lo: float = max(LOG_DURATION_MIN - shrink, DURATION_MIN_FLOOR)
+	var hi: float = max(LOG_DURATION_MAX - shrink, DURATION_MIN_FLOOR + 0.3)
+	_log_duration = rng.randf_range(lo, hi)
 	_progress_label.text = "Tronco %d / %d" % [_log_index + 1, NUM_LOGS]
+
+func _current_threshold() -> float:
+	return min(SUCCESS_THRESHOLD + _log_index * THRESHOLD_STEP, 92.0)
 
 func _process(delta: float) -> void:
 	if not _running:
@@ -73,7 +86,7 @@ func _process(delta: float) -> void:
 
 	if _tap_requested:
 		_tap_requested = false
-		if stability >= SUCCESS_THRESHOLD:
+		if stability >= _current_threshold():
 			_advance()
 		else:
 			_fail()

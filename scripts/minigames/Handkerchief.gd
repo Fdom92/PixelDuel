@@ -7,6 +7,14 @@ const MAX_DELAY := 3.2
 const MAX_REACTION_MS := 700.0
 const RESULT_DELAY := 1.0
 
+## Amago: a veces el pañuelo "tiembla" un instante antes de la señal de
+## verdad. Es puramente visual — picar con el amago sigue contando como
+## falsa salida por las reglas normales — pero obliga a esperar la señal
+## de verdad en vez de memorizar un tiempo fijo.
+const DECOY_CHANCE := 0.5
+const DECOY_FLASH_TIME := 0.18
+const DECOY_MIN_MARGIN := 0.5
+
 var _cue_rect: ColorRect
 var _info_label: Label
 
@@ -26,7 +34,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_info_label = Label.new()
-	_info_label.text = "Espera la señal... ¡no toques antes de tiempo!"
+	_info_label.text = "Espera la señal... ¡cuidado con los amagos!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
@@ -39,8 +47,23 @@ func _ready() -> void:
 	call_deferred("_layout")
 
 	var delay: float = rng.randf_range(MIN_DELAY, MAX_DELAY)
+	if rng.randf() < DECOY_CHANCE and delay > DECOY_MIN_MARGIN + 0.4:
+		var decoy_delay: float = rng.randf_range(0.3, delay - DECOY_MIN_MARGIN)
+		var decoy_timer := get_tree().create_timer(decoy_delay)
+		decoy_timer.timeout.connect(_flash_decoy)
+
 	var timer := get_tree().create_timer(delay)
 	timer.timeout.connect(_on_cue)
+
+func _flash_decoy() -> void:
+	if _state != "waiting":
+		return
+	_cue_rect.color = Color(0.7, 0.6, 0.3)
+	var revert_timer := get_tree().create_timer(DECOY_FLASH_TIME)
+	revert_timer.timeout.connect(func():
+		if _state == "waiting":
+			_cue_rect.color = Color(0.4, 0.4, 0.45)
+	)
 
 func _layout() -> void:
 	var vp := get_viewport_rect().size

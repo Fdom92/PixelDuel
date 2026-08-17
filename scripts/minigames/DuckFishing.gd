@@ -11,10 +11,17 @@ const BASKET_HEIGHT := 18.0
 const DUCK_SIZE := 20.0
 const RESULT_DELAY := 1.0
 
+## La lluvia de patos se acelera con el tiempo (más rápido y más seguido),
+## y una parte son patos "malos" que restan si los atrapas — barrer la
+## cesta de un lado a otro sin mirar deja de ser gratis.
+const SPEED_RAMP := 0.6 # +60% de velocidad de caída al final de la prueba
+const SPAWN_RAMP := 0.4 # -40% de intervalo entre patos al final
+const BAD_DUCK_CHANCE := 0.25
+
 var _basket: ColorRect
 var _info_label: Label
 var _stat_label: Label
-var _ducks: Array[ColorRect] = []
+var _ducks: Array[Dictionary] = []
 
 var _vp := Vector2.ZERO
 var _elapsed := 0.0
@@ -41,7 +48,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_info_label = Label.new()
-	_info_label.text = "Arrastra la cesta para atrapar los patos"
+	_info_label.text = "Atrapa los patos amarillos — ¡evita los oscuros, restan!"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
@@ -70,23 +77,30 @@ func _process(delta: float) -> void:
 		return
 	_elapsed += delta
 
+	var progress: float = clamp(_elapsed / duration_max, 0.0, 1.0)
+	var speed: float = FALL_SPEED * (1.0 + progress * SPEED_RAMP)
+
 	if _elapsed < duration_max:
 		_spawn_timer -= delta
 		if _spawn_timer <= 0.0:
-			_spawn_timer = SPAWN_INTERVAL
+			_spawn_timer = SPAWN_INTERVAL * (1.0 - progress * SPAWN_RAMP)
 			_spawn_duck()
 
 	if _pointer_down:
 		_basket.position.x = clamp(_pointer_x - BASKET_WIDTH / 2.0, 0.0, _vp.x - BASKET_WIDTH)
 
 	for i in range(_ducks.size() - 1, -1, -1):
-		var duck := _ducks[i]
-		duck.position.y += FALL_SPEED * delta
-		if duck.position.y + DUCK_SIZE >= _basket.position.y:
-			var duck_center_x: float = duck.position.x + DUCK_SIZE / 2.0
+		var duck: Dictionary = _ducks[i]
+		var rect: ColorRect = duck["rect"]
+		rect.position.y += speed * delta
+		if rect.position.y + DUCK_SIZE >= _basket.position.y:
+			var duck_center_x: float = rect.position.x + DUCK_SIZE / 2.0
 			if duck_center_x >= _basket.position.x and duck_center_x <= _basket.position.x + BASKET_WIDTH:
-				_caught += 1
-			duck.queue_free()
+				if duck["bad"]:
+					_caught = max(_caught - 1, 0)
+				else:
+					_caught += 1
+			rect.queue_free()
 			_ducks.remove_at(i)
 
 	_stat_label.text = "Atrapados: %d / %d — %.1fs" % [_caught, _spawned, max(duration_max - _elapsed, 0.0)]
@@ -95,12 +109,13 @@ func _process(delta: float) -> void:
 		_stop()
 
 func _spawn_duck() -> void:
+	var is_bad: bool = rng.randf() < BAD_DUCK_CHANCE
 	var duck := ColorRect.new()
-	duck.color = Color(0.95, 0.85, 0.2)
+	duck.color = Color(0.25, 0.2, 0.15) if is_bad else Color(0.95, 0.85, 0.2)
 	duck.size = Vector2(DUCK_SIZE, DUCK_SIZE)
 	duck.position = Vector2(rng.randf_range(0.0, _vp.x - DUCK_SIZE), 0.0)
 	add_child(duck)
-	_ducks.append(duck)
+	_ducks.append({"rect": duck, "bad": is_bad})
 	_spawned += 1
 
 func _input(event: InputEvent) -> void:
@@ -122,7 +137,8 @@ func _input(event: InputEvent) -> void:
 func _stop() -> void:
 	_running = false
 	for duck in _ducks:
-		duck.queue_free()
+		var rect: ColorRect = duck["rect"]
+		rect.queue_free()
 	_ducks.clear()
 
 	_info_label.text = "Patos atrapados: %d" % _caught
