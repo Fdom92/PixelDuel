@@ -61,6 +61,7 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.text = "Carga y suelta para lanzar la bola"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
 	add_child(_info_label)
@@ -201,6 +202,7 @@ func _launch() -> void:
 	_state = "playing"
 	_charging = false
 	_ball_vel = Vector2(rng.randf_range(-30.0, 30.0), -(LAUNCH_MAX_SPEED * _power / 100.0 + 80.0))
+	_info_label.text = "¡En juego! Mantén el lado izq. o dcha. para golpear con ese flipper"
 
 func _input(event: InputEvent) -> void:
 	if _state == "done":
