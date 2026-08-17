@@ -11,6 +11,14 @@ const SUCCESS_WINDOW := 18.0
 const TAP_COOLDOWN := 0.3
 const RESULT_DELAY := 1.0
 
+## Cada mordisco acierta más rápido y con menos margen: la manzana se
+## balancea más deprisa y la ventana de acierto se va cerrando, hasta un
+## mínimo, para que no valga solo con esperar cómodamente en el centro.
+const SWING_PERIOD_MIN := 0.85
+const WINDOW_MIN := 8.0
+const DIFFICULTY_PERIOD_STEP := 0.09
+const DIFFICULTY_WINDOW_STEP := 1.4
+
 var _mouth_marker: ColorRect
 var _apple: ColorRect
 var _info_label: Label
@@ -23,6 +31,7 @@ var _cooldown_left := 0.0
 var _bite_count := 0
 var _running := false
 var _phase := 0.0
+var _angle := 0.0
 
 func get_aggregation_type() -> String:
 	return "collect_sum"
@@ -79,7 +88,8 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	_cooldown_left = max(_cooldown_left - delta, 0.0)
 
-	var offset: float = sin(_elapsed * (TAU / SWING_PERIOD) + _phase) * (_track_width / 2.0)
+	_angle += (TAU / _current_swing_period()) * delta
+	var offset: float = sin(_angle + _phase) * (_track_width / 2.0)
 	var apple_center_x: float = _vp.x / 2.0 + offset
 	_apple.position = Vector2(apple_center_x - _apple.size.x / 2.0, _vp.y / 2.0 - _apple.size.y / 2.0)
 
@@ -99,8 +109,14 @@ func _input(event: InputEvent) -> void:
 	_cooldown_left = TAP_COOLDOWN
 	var apple_center_x: float = _apple.position.x + _apple.size.x / 2.0
 	var mouth_center_x: float = _mouth_marker.position.x + _mouth_marker.size.x / 2.0
-	if abs(apple_center_x - mouth_center_x) <= SUCCESS_WINDOW:
+	if abs(apple_center_x - mouth_center_x) <= _current_success_window():
 		_bite_count += 1
+
+func _current_swing_period() -> float:
+	return max(SWING_PERIOD - _bite_count * DIFFICULTY_PERIOD_STEP, SWING_PERIOD_MIN)
+
+func _current_success_window() -> float:
+	return max(SUCCESS_WINDOW - _bite_count * DIFFICULTY_WINDOW_STEP, WINDOW_MIN)
 
 func _stop() -> void:
 	_running = false

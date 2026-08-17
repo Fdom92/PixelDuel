@@ -4,9 +4,15 @@ extends MinigameBase
 
 const NUM_FLAGS := 4
 const MAX_ROUNDS := 8
-const SHOW_DELAY := 0.5
-const GAP_DELAY := 0.2
 const RESULT_DELAY := 1.0
+
+## La secuencia se reproduce cada vez más rápido a medida que crece —
+## llegar a los 100 puntos exige memoria Y reflejos, no solo memoria.
+const SHOW_DELAY_BASE := 0.5
+const SHOW_DELAY_MIN := 0.22
+const GAP_DELAY_BASE := 0.22
+const GAP_DELAY_MIN := 0.1
+const DIFFICULTY_STEP := 0.035
 
 var _base_colors: Array[Color] = [
 	Color(0.8, 0.2, 0.2),
@@ -68,11 +74,13 @@ func _start_round() -> void:
 	_play_sequence()
 
 func _play_sequence() -> void:
+	var show_delay: float = max(SHOW_DELAY_BASE - DIFFICULTY_STEP * (_sequence.size() - 1), SHOW_DELAY_MIN)
+	var gap_delay: float = max(GAP_DELAY_BASE - DIFFICULTY_STEP * (_sequence.size() - 1), GAP_DELAY_MIN)
 	for idx in _sequence:
 		_set_highlight(idx, true)
-		await get_tree().create_timer(SHOW_DELAY).timeout
+		await get_tree().create_timer(show_delay).timeout
 		_set_highlight(idx, false)
-		await get_tree().create_timer(GAP_DELAY).timeout
+		await get_tree().create_timer(gap_delay).timeout
 	if not _done:
 		_accepting_input = true
 
@@ -111,7 +119,7 @@ func _on_flag_tapped(idx: int) -> void:
 		if _round_completed >= MAX_ROUNDS:
 			_stop(100.0)
 		else:
-			await get_tree().create_timer(SHOW_DELAY).timeout
+			await get_tree().create_timer(SHOW_DELAY_BASE).timeout
 			_start_round()
 
 func _stop(score: float) -> void:

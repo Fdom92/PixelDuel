@@ -6,13 +6,23 @@ extends MinigameBase
 ## Recolección acumulada: se suman las notas acertadas por todos los
 ## participantes.
 
-@export var duration_max := 8.0
+@export var duration_max := 12.0
 const NUM_LANES := 4
 const NOTE_SPEED := 220.0
 const HIT_LINE_Y_FRAC := 0.78
 const HIT_WINDOW := 24.0
 const SPAWN_INTERVAL := 0.55
 const RESULT_DELAY := 1.0
+
+## Racha de aciertos seguidos: cada SPEED_TIER_COMBO aciertos sube la
+## velocidad un escalón (hasta SPEED_TIER_MAX). Al fallar una nota (no solo
+## tocar fuera de sitio) la racha se reinicia y vuelve al ritmo base. A
+## partir de DOUBLE_COMBO_THRESHOLD de racha pueden salir dos notas a la vez.
+const SPEED_TIER_COMBO := 4
+const SPEED_TIER_BONUS := 0.18
+const SPEED_TIER_MAX := 2.2
+const DOUBLE_COMBO_THRESHOLD := 6
+const DOUBLE_CHANCE := 0.4
 
 var _lane_colors: Array[Color] = [
 	Color(0.8, 0.2, 0.2),
@@ -33,6 +43,7 @@ var _hit_line_y := 0.0
 var _spawn_timer := 0.4
 var _elapsed := 0.0
 var _hit_count := 0
+var _combo := 0
 var _running := false
 
 func get_aggregation_type() -> String:
@@ -97,21 +108,29 @@ func _process(delta: float) -> void:
 	if _elapsed < duration_max:
 		_spawn_timer -= delta
 		if _spawn_timer <= 0.0:
-			_spawn_timer = SPAWN_INTERVAL
+			var mult := _speed_multiplier()
+			_spawn_timer = max(SPAWN_INTERVAL / mult, 0.22)
 			_spawn_note()
+			if _combo >= DOUBLE_COMBO_THRESHOLD and rng.randf() < DOUBLE_CHANCE:
+				_spawn_note()
 
 	for i in range(_notes.size() - 1, -1, -1):
 		var note: Dictionary = _notes[i]
 		var rect: ColorRect = note["rect"]
-		rect.position.y += NOTE_SPEED * delta
+		rect.position.y += float(note["speed"]) * delta
 		if rect.position.y > _vp.y:
 			rect.queue_free()
 			_notes.remove_at(i)
+			_combo = 0
 
-	_stat_label.text = "Notas: %d — %.1fs" % [_hit_count, max(duration_max - _elapsed, 0.0)]
+	_stat_label.text = "Notas: %d · Racha: %d — %.1fs" % [_hit_count, _combo, max(duration_max - _elapsed, 0.0)]
 
 	if _elapsed >= duration_max and _notes.is_empty():
 		_stop()
+
+func _speed_multiplier() -> float:
+	var tier: int = _combo / SPEED_TIER_COMBO
+	return min(1.0 + tier * SPEED_TIER_BONUS, SPEED_TIER_MAX)
 
 func _spawn_note() -> void:
 	var lane: int = rng.randi_range(0, NUM_LANES - 1)
@@ -120,7 +139,7 @@ func _spawn_note() -> void:
 	note.size = Vector2(_lane_w - 16.0, 20.0)
 	note.position = Vector2(lane * _lane_w + 8.0, -20.0)
 	add_child(note)
-	_notes.append({"rect": note, "lane": lane})
+	_notes.append({"rect": note, "lane": lane, "speed": NOTE_SPEED * _speed_multiplier()})
 
 func _input(event: InputEvent) -> void:
 	if not _running:
@@ -144,6 +163,7 @@ func _input(event: InputEvent) -> void:
 		var rect: ColorRect = note["rect"]
 		if abs(rect.position.y - _hit_line_y) <= HIT_WINDOW:
 			_hit_count += 1
+			_combo += 1
 			rect.queue_free()
 			_notes.remove_at(i)
 			return

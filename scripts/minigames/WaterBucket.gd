@@ -6,7 +6,12 @@ extends MinigameBase
 
 @export var duration_max := 8.0
 const WOBBLE_RISE_RATE := 11.0 # por segundo
-const STABILIZE_AMOUNT := 28.0
+const STABILIZE_AMOUNT := 22.0
+## Estabilizar cuando el cubo casi ni se mueve lo desestabiliza en vez de
+## ayudar (te pasas de fuerza y se derrama) — evita que machacar sin mirar
+## la barra sea la estrategia óptima.
+const OVERCORRECT_THRESHOLD := 32.0
+const OVERCORRECT_PENALTY := 16.0
 const COOLDOWN := 0.8
 const RESULT_DELAY := 1.0
 
@@ -35,7 +40,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_info_label = Label.new()
-	_info_label.text = "Toca 'Estabilizar' para bajar el tambaleo, ¡sin abusar!"
+	_info_label.text = "Toca solo cuando tambalee mucho — corregir de más también desestabiliza"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
@@ -93,7 +98,10 @@ func _input(event: InputEvent) -> void:
 	if not pressed:
 		return
 	if _cooldown_left <= 0.0:
-		_wobble = max(_wobble - STABILIZE_AMOUNT, 0.0)
+		if _wobble >= OVERCORRECT_THRESHOLD:
+			_wobble = max(_wobble - STABILIZE_AMOUNT, 0.0)
+		else:
+			_wobble = min(_wobble + OVERCORRECT_PENALTY, 100.0)
 		_cooldown_left = COOLDOWN
 
 func _stop() -> void:

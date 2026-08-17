@@ -4,9 +4,12 @@ extends MinigameBase
 ## antes de que se acabe el tiempo. Recolección acumulada — el equipo
 ## suma los premios cogidos por todos sus participantes.
 
-@export var duration_max := 5.0
-const CLIMB_PER_TAP := 14.0
-const SLIDE_BACK_RATE := 10.0
+@export var duration_max := 6.0
+const CLIMB_PER_TAP := 12.0
+const SLIDE_BACK_RATE := 11.0
+## Cerca de la cima el palo resbala mucho más (más grasa/cansancio) — los
+## primeros premios son fáciles, el de arriba exige tocar sin parar de verdad.
+const SLIDE_BACK_HEIGHT_FACTOR := 3.0
 const PRIZE_COUNT := 5
 const RESULT_DELAY := 0.8
 
@@ -95,7 +98,9 @@ func _process(delta: float) -> void:
 	if not _running:
 		return
 	_elapsed += delta
-	_height = clamp(_height - SLIDE_BACK_RATE * delta, 0.0, _track_height)
+	var height_frac: float = _height / _track_height if _track_height > 0.0 else 0.0
+	var slide_rate: float = SLIDE_BACK_RATE * (1.0 + height_frac * height_frac * SLIDE_BACK_HEIGHT_FACTOR)
+	_height = clamp(_height - slide_rate * delta, 0.0, _track_height)
 	_check_prizes()
 	_update_climber()
 	_time_label.text = "Premios: %d — %.1fs" % [_collected_count, max(duration_max - _elapsed, 0.0)]

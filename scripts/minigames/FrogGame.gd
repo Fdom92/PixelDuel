@@ -1,26 +1,33 @@
 extends MinigameBase
-## La rana: mantén pulsado para cargar el indicador (oscila solo a lo
-## largo del tablero) y suelta sobre la zona que quieras. La boca vale
-## más pero es estrecha; los bordes valen menos pero son fáciles.
+## La rana: desliza hacia arriba para lanzar la rana de un salto — cuanto
+## más fuerte el gesto, más lejos llega. La boca del tablero (centro) vale
+## más pero es estrecha; los bordes valen menos pero son fáciles de tocar.
+## El salto se anima con un arco (simula la gravedad) para que se note
+## que la potencia del gesto determina dónde cae.
 
-const CHARGE_SPEED := 150.0
 const RESULT_DELAY := 1.0
+const MAX_SWIPE_FRACTION := 0.5 # fracción de la altura de pantalla = potencia máxima
+const JUMP_DURATION := 0.55
+const JUMP_HEIGHT := 40.0
 
 var _bar: ColorRect
 var _marker: ColorRect
 var _info_label: Label
 
 var _bar_width := 0.0
-var _power := 0.0
-var _direction := 1
-var _charging := false
+var _start_pos := Vector2.ZERO
+var _dragging := false
 var _fired := false
+var _jumping := false
+var _jump_t := 0.0
+var _jump_start_x := 0.0
+var _jump_target_x := 0.0
 
 func get_aggregation_type() -> String:
 	return "best"
 
 func get_mechanic_category() -> String:
-	return "carga_suelta"
+	return "swipe"
 
 func get_display_name() -> String:
 	return "La rana"
@@ -29,7 +36,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_info_label = Label.new()
-	_info_label.text = "Mantén pulsado para cargar, suelta sobre el tablero"
+	_info_label.text = "Desliza hacia arriba: más fuerte, más lejos salta"
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_info_label.position.y = 16
@@ -75,36 +82,48 @@ func _layout(zone_specs: Array) -> void:
 		x += w
 
 	_marker.size = Vector2(6.0, 24.0)
-	_marker.position = Vector2(0.0, 0.0)
+	_jump_start_x = _bar_width / 2.0
+	_marker.position = Vector2(_jump_start_x - _marker.size.x / 2.0, 0.0)
 
 func _process(delta: float) -> void:
-	if _fired or not _charging or _bar_width <= 0.0:
+	if not _jumping:
 		return
-	_power += CHARGE_SPEED * _direction * delta
-	if _power >= 100.0:
-		_power = 100.0
-		_direction = -1
-	elif _power <= 0.0:
-		_power = 0.0
-		_direction = 1
-	_marker.position.x = _bar_width * _power / 100.0
+	_jump_t += delta
+	var t: float = clamp(_jump_t / JUMP_DURATION, 0.0, 1.0)
+	var x: float = lerp(_jump_start_x, _jump_target_x, t)
+	var arc: float = sin(t * PI) * JUMP_HEIGHT # sube y cae, como si la gravedad tirase de ella
+	_marker.position = Vector2(x - _marker.size.x / 2.0, -arc)
+	if t >= 1.0:
+		_jumping = false
+		_marker.position.y = 0.0
+		_resolve_landing()
 
 func _input(event: InputEvent) -> void:
 	if _fired:
 		return
-	var pressed_now: bool = (event is InputEventScreenTouch and event.pressed) \
-		or (event is InputEventMouseButton and event.pressed)
-	var released_now: bool = (event is InputEventScreenTouch and not event.pressed) \
-		or (event is InputEventMouseButton and not event.pressed)
-	if pressed_now and not _charging:
-		_charging = true
-	elif released_now and _charging:
-		_fire()
+	if event is InputEventScreenTouch or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):
+		if event.pressed:
+			_start_pos = event.position
+			_dragging = true
+		elif _dragging:
+			_dragging = false
+			_launch(event.position)
 
-func _fire() -> void:
+func _launch(end_pos: Vector2) -> void:
 	_fired = true
-	_charging = false
-	var dist_from_center: float = abs(_power - 50.0)
+	var vp := get_viewport_rect().size
+	var swipe_up: float = _start_pos.y - end_pos.y # positivo si desliza hacia arriba
+	var max_swipe: float = vp.y * MAX_SWIPE_FRACTION
+	var power: float = clamp(swipe_up / max_swipe, 0.0, 1.0) * 100.0
+
+	_jump_target_x = _bar_width * power / 100.0
+	_jump_t = 0.0
+	_jumping = true
+	_info_label.text = "¡Salta!"
+
+func _resolve_landing() -> void:
+	var power: float = _jump_target_x / _bar_width * 100.0
+	var dist_from_center: float = abs(power - 50.0)
 	var score := 5.0
 	if dist_from_center <= 5.0:
 		score = 50.0
